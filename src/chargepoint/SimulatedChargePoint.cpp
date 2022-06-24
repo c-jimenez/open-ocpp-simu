@@ -502,10 +502,10 @@ bool SimulatedChargePoint::isTransactionStopCondition(MqttManager&              
         {
             AuthorizationStatus auth_status;
             std::string         parent_id_tag;
-            auth_status = charge_point.authorize(connector.id, id_tag, connector.parent_id_tag);
+            auth_status = charge_point.authorize(connector.id, id_tag, parent_id_tag);
             if ((auth_status == AuthorizationStatus::Accepted) || (auth_status == AuthorizationStatus::ConcurrentTx))
             {
-                ret = (parent_id_tag == connector.id_tag);
+                ret = !parent_id_tag.empty() && (parent_id_tag == connector.parent_id_tag);
             }
             else
             {
