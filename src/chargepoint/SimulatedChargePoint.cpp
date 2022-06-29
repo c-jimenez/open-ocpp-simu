@@ -402,7 +402,19 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                 case ChargePointStatus::Reserved:
                 {
                     // If valid id tag (local or remote) => Preparing
-                    // Start preparing timeout
+                    if (isValidIdTagPresent(mqtt, charge_point, event_handler, connector, false))
+                    {
+                        charge_point.statusNotification(connector.id, ChargePointStatus::Preparing);
+                    }
+                    // If fault pending => Faulted
+                    else if (connector.fault_pending)
+                    {
+                        charge_point.statusNotification(connector.id, ChargePointStatus::Faulted);
+                    }
+                    else
+                    {
+                        // Stay in current state
+                    }
                 }
                 break;
 
@@ -497,21 +509,11 @@ bool SimulatedChargePoint::isTransactionStopCondition(MqttManager&              
     // Check local id tag
     if (mqtt.isIdTagPending(connector.id))
     {
-        std::string id_tag = mqtt.pendingIdTag(connector.id);
-        if (id_tag != connector.id_tag)
-        {
-            AuthorizationStatus auth_status;
-            std::string         parent_id_tag;
-            auth_status = charge_point.authorize(connector.id, id_tag, parent_id_tag);
-            if ((auth_status == AuthorizationStatus::Accepted) || (auth_status == AuthorizationStatus::ConcurrentTx))
-            {
-                ret = !parent_id_tag.empty() && (parent_id_tag == connector.parent_id_tag);
-            }
-            else
-            {
-                ret = false;
-            }
-        }
+        AuthorizationStatus auth_status;
+        std::string         parent_id_tag;
+        std::string         id_tag = mqtt.pendingIdTag(connector.id);
+        auth_status                = charge_point.authorize(connector.id, id_tag, parent_id_tag);
+        ret                        = (auth_status == AuthorizationStatus::Accepted);
         mqtt.resetIdTagPending(connector.id);
         if (ret)
         {
