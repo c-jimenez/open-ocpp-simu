@@ -185,6 +185,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                         // Clear any id tag
                         connector.id_tag        = "";
                         connector.parent_id_tag = "";
+                        mqtt.resetIdTagPending(connector.id);
                     }
                     break;
 
@@ -234,6 +235,11 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                     else if (connector.fault_pending)
                     {
                         charge_point.statusNotification(connector.id, ChargePointStatus::Faulted);
+                    }
+                    // If unavailable request pending => Unavailable
+                    else if (connector.unavailable_pending)
+                    {
+                        charge_point.statusNotification(connector.id, ChargePointStatus::Unavailable);
                     }
                     else
                     {
@@ -411,6 +417,11 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                     {
                         charge_point.statusNotification(connector.id, ChargePointStatus::Faulted);
                     }
+                    // If unavailable request pending => Unavailable
+                    else if (connector.unavailable_pending)
+                    {
+                        charge_point.statusNotification(connector.id, ChargePointStatus::Unavailable);
+                    }
                     else
                     {
                         // Stay in current state
@@ -430,6 +441,15 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                     if (!connector.fault_pending)
                     {
                         charge_point.statusNotification(connector.id, ChargePointStatus::Available);
+                    }
+                    // If unavailable request pending => Unavailable
+                    else if (connector.unavailable_pending)
+                    {
+                        charge_point.statusNotification(connector.id, ChargePointStatus::Unavailable);
+                    }
+                    else
+                    {
+                        // Stay in current state
                     }
                 }
                 break;

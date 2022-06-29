@@ -75,6 +75,8 @@ struct ConnectorData
     std::chrono::steady_clock::time_point preparing_start;
     /** @brief Indicate that a fault occured */
     bool fault_pending;
+    /** @brief Indicate that an unavailable request has be scheduled */
+    bool unavailable_pending;
     /** @brief Meter */
     MeterSimulator* meter;
 };

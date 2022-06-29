@@ -89,8 +89,24 @@ void ChargePointEventsHandler::datetimeReceived(const ocpp::types::DateTime& dat
 ocpp::types::AvailabilityStatus ChargePointEventsHandler::changeAvailabilityRequested(unsigned int                  connector_id,
                                                                                       ocpp::types::AvailabilityType availability)
 {
+    AvailabilityStatus ret = AvailabilityStatus::Accepted;
     cout << "Change availability requested : " << connector_id << " - " << AvailabilityTypeHelper.toString(availability) << endl;
-    return AvailabilityStatus::Accepted;
+    ConnectorData& connector = m_connectors->at(connector_id - 1u);
+    if (availability == AvailabilityType::Inoperative)
+    {
+        if ((connector.status != ChargePointStatus::Available) && (connector.status != ChargePointStatus::Reserved) &&
+            (connector.status != ChargePointStatus::Faulted))
+        {
+            connector.unavailable_pending = true;
+            ret                           = AvailabilityStatus::Scheduled;
+        }
+    }
+    else
+    {
+        connector.unavailable_pending = false;
+    }
+
+    return ret;
 }
 
 /** @copydoc unsigned int IChargePointEventsHandler::getTxStartStopMeterValue(unsigned int) */
