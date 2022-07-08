@@ -64,7 +64,7 @@ The build generates the following 2 executables :
 * chargepoint
 * launcher
 
-## Usage
+## Usage
 
 The whole simulation environment is based on MQTT so the mosquitto broker must always be started to make it work.
 On Debian, the mosquitto broker can be started or stopped using th following commands:
@@ -159,7 +159,7 @@ To take back control of the simulated Charge Points, just restart the **launcher
 
 You can then kill or remove the simulated Charge Points if needed.
 
-## Under the hood
+## Under the hood
 
 The whole simulation environment can be monitored and controled through MQTT messages.
 
