@@ -23,6 +23,7 @@ These 3 applications are communicating using the MQTT protocol and the simulated
 ### Pre-requisites
 
 * Open OCPP library (see [Build and installation procedure](https://github.com/c-jimenez/open-ocpp#build))
+* [Paho MQTT library](https://www.eclipse.org/paho/) 1.3.8 or greater
 * Python 3.8 or greater with the following packages : kivy, paho-mqtt
 * [Mosquitto MQTT broker](https://mosquitto.org/) 2.0.11 or greater
 
@@ -31,12 +32,12 @@ For information, most of the development has been made on the following environm
 * Debian 11 (Bullseye)
 * gcc 10.2 and clang 11.0
 * Python 3.9
-* Mosquitto 2.0.11 
+* Mosquitto 2.0.11
 
 On Debian the pre-requisites (except for Open OCPP) can be installed using the following commands:
 
 ```
-sudo apt install python3 mosquitto
+sudo apt install python3 python3-pip mosquitto libpaho-mqtt-dev
 python3 -m pip install kivy paho-mqtt
 ```
 
@@ -52,7 +53,7 @@ Additionnaly, the **CMakeLists_Options.txt** contains several options that can b
 
 An helper makefile is available at project's level to simplify the use of CMake. Just use the one of the following commands to build using gcc or gcc without cross compilation :
 
-```make gcc-native``` or ```make clang-native``` or ```make gcc-native BUILD_TYPE=Debug``` or ```make clang-native BUILD_TYPE=Debug``` 
+```make gcc-native``` or ```make clang-native``` or ```make gcc-native BUILD_TYPE=Debug``` or ```make clang-native BUILD_TYPE=Debug```
 
 This makefile also contains the corresponding cleaning targets :
 
@@ -193,7 +194,7 @@ cp_simu
  |   |  |  | |-car
  |   |  |  | |-id_tag
  |   |  |  | |-status
-``` 
+```
 
 The simulation environment takes advantage of 2 MQTT features :
 
@@ -203,7 +204,7 @@ The simulation environment takes advantage of 2 MQTT features :
 To remove a simulated Charge Point from the simulation environment, use the following protocol :
 
 * Kill the simulated Charge Point instance through the **launcher** API
-* Remove the retained status of the simulated Charge Point and its connectors in the MQTT broker by sending a retained message with an empty payload on their status topics 
+* Remove the retained status of the simulated Charge Point and its connectors in the MQTT broker by sending a retained message with an empty payload on their status topics
 
 ### Launcher API
 
@@ -239,7 +240,7 @@ Payload :
 {
     "type": "kill",
     "charge_points": [
-        { "id": "simu_cp_XXX" }, 
+        { "id": "simu_cp_XXX" },
         { "id": "simu_cp_YYY" }
     ]
 }
@@ -301,7 +302,7 @@ The status message has the following payload :
 Each connector of the simulated Charge Point are listening to the following topic to simulate interaction with a car : **cp_simu/cps/simu_cp_XXX/connectors/N/car** where **N** stands for the connector number.
 
 The expected command payload is :
- 
+
  ```
  {
     "cable": 32,
@@ -313,7 +314,7 @@ The expected command payload is :
  Each connector of the simulated Charge Point are listening to the following topic to simulate interaction with a user resenting an RFID card : **cp_simu/cps/simu_cp_XXX/connectors/N/id_tag** where **N** stands for the connector number.
 
 The expected command payload is :
- 
+
  ```
  {
     "id": "ID_TAG"
