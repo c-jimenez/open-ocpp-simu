@@ -86,10 +86,17 @@ bool PahoMqttClient::connect(const std::string& url, bool clean_session, std::ch
         if (MQTTClient_create(&m_client, url.c_str(), m_id.c_str(), MQTTCLIENT_PERSISTENCE_NONE, nullptr) == MQTTCLIENT_SUCCESS)
         {
             // Connect to the broker
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#endif // __clang
             MQTTClient_connectOptions options = MQTTClient_connectOptions_initializer;
-            options.cleansession              = static_cast<int>(clean_session);
-            options.connectTimeout            = static_cast<int>(timeout.count());
-            options.keepAliveInterval         = static_cast<int>(keep_alive.count());
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif // __clang
+            options.cleansession      = static_cast<int>(clean_session);
+            options.connectTimeout    = static_cast<int>(timeout.count());
+            options.keepAliveInterval = static_cast<int>(keep_alive.count());
             if (m_will.topicName)
             {
                 options.will = &m_will;

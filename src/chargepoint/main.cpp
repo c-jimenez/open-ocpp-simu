@@ -42,7 +42,7 @@ class Listener : public IMqttClient::IListener
 {
   public:
     /** @copydoc void IMqttClient::IListener::mqttConnectionLost() */
-    void mqttConnectionLost()
+    void mqttConnectionLost() override
     {
         cout << "Communication lost!" << endl;
         client->close();

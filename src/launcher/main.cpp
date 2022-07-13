@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     IMqttClient* mqtt = IMqttClient::create("OCPP charge point simulator launcher");
 
     // Command handler
-    CommandHandler cmd_handler(*mqtt, broker_url, chargepoint_dir);
+    CommandHandler cmd_handler(broker_url, chargepoint_dir);
     mqtt->registerListener(cmd_handler);
 
     // Configuration file

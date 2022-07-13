@@ -33,8 +33,8 @@ SOFTWARE.
 #include <sstream>
 
 /** @brief Constructor */
-CommandHandler::CommandHandler(IMqttClient& client, const std::string broker_url, std::filesystem::path chargepoints_dir)
-    : m_client(client), m_broker_url(broker_url), m_chargepoints_dir(chargepoints_dir), m_end(false), m_cp_status(), m_cp_pids()
+CommandHandler::CommandHandler(const std::string broker_url, std::filesystem::path chargepoints_dir)
+    : m_broker_url(broker_url), m_chargepoints_dir(chargepoints_dir), m_end(false), m_cp_status(), m_cp_pids()
 {
 }
 

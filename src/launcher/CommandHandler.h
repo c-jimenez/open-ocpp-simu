@@ -36,7 +36,7 @@ class CommandHandler : public IMqttClient::IListener
 {
   public:
     /** @brief Constructor */
-    CommandHandler(IMqttClient& client, const std::string broker_url, std::filesystem::path chargepoints_dir);
+    CommandHandler(const std::string broker_url, std::filesystem::path chargepoints_dir);
 
     /** @brief Destructor */
     virtual ~CommandHandler();
@@ -57,8 +57,6 @@ class CommandHandler : public IMqttClient::IListener
     bool killChargePoints(const rapidjson::Value& charge_points);
 
   private:
-    /** @brief MQTT client */
-    IMqttClient& m_client;
     /** @brief URL of the broker */
     const std::string m_broker_url;
     /** @brief Directory to store charge points data */
