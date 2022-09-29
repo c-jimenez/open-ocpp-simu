@@ -19,14 +19,14 @@ BUILD_TYPE?=Debug
 DISABLE_DOCKER?=0
 
 
-DOCKER_COMPILE_IMAGE=open-ocpp-compile
+DOCKER_COMPILE_IMAGE=open-ocpp-simu-compile
 
 
 # Default target
 default: gcc-native
 
 # Silent makefile
-.SILENT:
+#.SILENT:
 
 # Install prefix
 ifneq ($(strip $(INSTALL_PREFIX)),)
@@ -97,7 +97,19 @@ $(CLANG_NATIVE_BUILD_DIR)/Makefile:
 
 
 DOCKER_BUILD=docker build --build-arg http_proxy="${http_proxy}" --build-arg https_proxy="${https_proxy}" --build-arg no_proxy="${no_proxy}" --build-arg uid=$$(id -u) --build-arg gid=$$(id -g)
-docker-build-images:
-	@${DOCKER_BUILD}  -f docker/Dockerfile -t ${DOCKER_COMPILE_IMAGE}  $(ROOT_DIR)/docker
+DOCKER_SIMULATOR_IMAGE=open-occp-cp-simulator
+docker-build-images: docker-build-simu-compile docker-build-cp-simulator
 
+docker-build-simu-compile:
+	@${DOCKER_BUILD}  -f docker/Dockerfile -t $(DOCKER_COMPILE_IMAGE)  $(ROOT_DIR)/docker
+
+docker-build-cp-simulator:
+	@${DOCKER_BUILD}  -f docker/Dockerfile_cp_simulator -t $(DOCKER_SIMULATOR_IMAGE)  $(ROOT_DIR)/bin/
+
+
+run-simu:
+	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-simu $(DOCKER_SIMULATOR_IMAGE)
+	
+run-launcher:
+	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-launcher --entrypoint /cp_simulator/launcher $(DOCKER_SIMULATOR_IMAGE)
 

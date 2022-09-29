@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim AS open-ocpp-simu
+FROM debian:bullseye-slim AS open-ocpp-simu-compile
 
 SHELL ["/bin/bash", "-c"]
 

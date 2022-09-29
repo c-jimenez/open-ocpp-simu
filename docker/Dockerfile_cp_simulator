@@ -1,0 +1,22 @@
+FROM open-ocpp-simu-compile
+
+ARG simu_user=cp_simu
+ARG simu_group=cp_simu
+ARG simu_uid=1001
+ARG simu_gid=1001
+
+USER root
+# Ensure user exist within container with same uid/gid
+RUN groupadd -g ${simu_gid} ${simu_group} && useradd -m -u ${simu_uid} -g ${simu_gid} ${simu_user}
+RUN mkdir -p /var/chargepoint
+RUN chown ${simu_uid}:${simu_gid} /var/chargepoint
+COPY gcc_native/config.ini /var/chargepoint/config.ini
+RUN chown ${simu_uid}:${simu_gid} /var/chargepoint/config.ini
+
+COPY gcc_native  /cp_simulator
+
+USER cp_simu
+
+WORKDIR "/var/chargepoint"
+
+ENTRYPOINT  ["/cp_simulator/chargepoint"]
