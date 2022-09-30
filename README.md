@@ -49,7 +49,7 @@ On Debian the pre-requisites (except for Open OCPP) can be installed using the f
 
 ```
 sudo apt install python3 python3-pip mosquitto libpaho-mqtt-dev
-python3 -m pip install kivy paho-mqtt
+python3 -m pip install -r requirements.txt
 ```
 
 ### Build options
