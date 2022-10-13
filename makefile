@@ -97,7 +97,7 @@ $(CLANG_NATIVE_BUILD_DIR)/Makefile:
 
 
 DOCKER_BUILD=docker build --build-arg http_proxy="${http_proxy}" --build-arg https_proxy="${https_proxy}" --build-arg no_proxy="${no_proxy}" --build-arg uid=$$(id -u) --build-arg gid=$$(id -g)
-DOCKER_SIMULATOR_IMAGE=open-occp-cp-simulator
+DOCKER_SIMULATOR_IMAGE=open-ocpp-cp-simulator
 docker-build-images: docker-build-simu-compile docker-build-cp-simulator
 
 docker-build-simu-compile:
