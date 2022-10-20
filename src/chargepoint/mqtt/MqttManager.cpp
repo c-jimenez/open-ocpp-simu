@@ -58,6 +58,8 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
     (void)qos;
     (void)retained;
 
+    std::cout << "MQTT message received!" << std::endl;
+
     // Decode message
     bool                valid = false;
     rapidjson::Document payload;
@@ -75,6 +77,7 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
     }
     else
     {
+        std::cout << "topic: " << topic << "\npayload: " << message << std::endl;
         // Split topic name
         std::filesystem::path topic_path(topic);
 
@@ -185,10 +188,10 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
         std::cout << "Connecting to the broker (" << m_config.mqttConfig().brokerUrl() << ")..." << std::endl;
         if (m_mqtt->connect(m_config.mqttConfig().brokerUrl()))
         {
-            std::cout << "Subscribing to charge point's command topic..." << std::endl;
+            std::cout << "Subscribing to charge point's command topic: " << chargepoint_cmd_topic << std::endl;
             if (m_mqtt->subscribe(chargepoint_cmd_topic))
             {
-                std::cout << "Subscribing to charge point's connector topics..." << std::endl;
+                std::cout << "Subscribing to charge point's connector topics: " << chargepoint_car_topics << " and " << chargepoint_tag_topics << std::endl;
                 if (m_mqtt->subscribe(chargepoint_car_topics) && m_mqtt->subscribe(chargepoint_tag_topics))
                 {
                     // Wait for disconnection or end of application
