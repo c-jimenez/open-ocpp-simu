@@ -49,9 +49,13 @@ class Connector(object):
         # Setpoint
         self.setpoint = 0
         # Consumption
-        self.consumption = 0
+        self.consumption_l1 = 0
+        self.consumption_l2 = 0
+        self.consumption_l3 = 0
         # Car consumption
-        self.car_consumption = 0
+        self.car_consumption_l1 = 0
+        self.car_consumption_l2 = 0
+        self.car_consumption_l3 = 0
         # Car cable capacity
         self.car_cable_capacity = 0
         # Car ready for charging
@@ -138,7 +142,7 @@ class ChargePointManager(object):
 
         return ret
 
-    def send_connector_values(self, cp_id: str, con_id: int, car_consumption: float, car_cable: float, car_ready: bool) -> bool:
+    def send_connector_values(self, cp_id: str, con_id: int, car_consumption_l1: float, car_consumption_l2: float, car_consumption_l3: float, car_cable: float, car_ready: bool) -> bool:
         """ Send new connector values for a Charge Point """
 
         ret = False
@@ -150,7 +154,7 @@ class ChargePointManager(object):
 
             # Build message
             payload = {"cable": car_cable, "ready": car_ready,
-                       "consumption": car_consumption}
+                       "consumption_l1": car_consumption_l1, "consumption_l2": car_consumption_l2, "consumption_l3": car_consumption_l3}
 
             # Publish message
             ret = self.__client.publish(topic_name, json.dumps(payload))
@@ -352,8 +356,12 @@ class ChargePointManager(object):
                     con.max_setpoint = data["max_setpoint"]
                     con.ocpp_setpoint = data["ocpp_setpoint"]
                     con.setpoint = data["setpoint"]
-                    con.consumption = data["consumption"]
-                    con.car_consumption = data["car_consumption"]
+                    con.consumption_l1 = data["consumption_l1"]
+                    con.consumption_l2 = data["consumption_l2"]
+                    con.consumption_l3 = data["consumption_l3"]
+                    con.car_consumption_l1 = data["car_consumption_l1"]
+                    con.car_consumption_l2 = data["car_consumption_l2"]
+                    con.car_consumption_l3 = data["car_consumption_l3"]
                     con.car_cable_capacity = data["car_cable_capacity"]
                     con.car_ready = data["car_ready"]
 

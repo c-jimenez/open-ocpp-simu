@@ -305,8 +305,12 @@ The status message has the following payload :
     "max_setpoint":32.0,
     "ocpp_setpoint":32.0,
     "setpoint":0.0,
-    "consumption":0.0,
-    "car_consumption":0.0,
+    "consumption_l1":0.0,
+    "consumption_l2":0.0,
+    "consumption_l3":0.0,
+    "car_consumption_l1":0.0,
+    "car_consumption_l2":0.0,
+    "car_consumption_l3":0.0,
     "car_cable_capacity":0.0,
     "car_ready":true
 }
@@ -318,9 +322,11 @@ The expected command payload is :
 
  ```
  {
-    "cable": 32,
+    "cable": 32.0,
     "ready": true,
-    "consumption": 10
+    "consumption_l1": 10.0,
+    "consumption_l2": 10.0,
+    "consumption_l3": 10.0
  }
  ```
 

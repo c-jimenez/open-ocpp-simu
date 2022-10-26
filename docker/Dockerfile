@@ -11,7 +11,7 @@ ARG gid=1000
 RUN echo "APT::Get::Assume-Yes "true";" >> /etc/apt/apt.conf.d/aptconf
 
 
-RUN apt-get update && apt-get install build-essential clang cmake python3 python3-pip python3-venv wget libpaho-mqtt-dev git openssl libssl-dev sqlite3 libsqlite3-dev\
+RUN apt-get update && apt-get install build-essential clang cmake python3 python3-pip python3-venv wget libpaho-mqtt-dev git openssl libssl-dev sqlite3 libsqlite3-dev zip curl \
 &&  apt-get -q autoremove  &&  rm -rf "/var/lib/apt/lists/*"
 
 RUN git clone https://github.com/c-jimenez/open-ocpp.git

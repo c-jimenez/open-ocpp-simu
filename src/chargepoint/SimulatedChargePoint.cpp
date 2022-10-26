@@ -650,17 +650,36 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
 void SimulatedChargePoint::computeCurrentConsumption(ConnectorData& connector)
 {
     // Default is no consumption
-    connector.consumption = 0.f;
+    float consumption_l1 = 0.f;
+    float consumption_l2 = 0.f;
+    float consumption_l3 = 0.f;
 
     // Check if charging
     if (connector.status == ChargePointStatus::Charging)
     {
         // Consumption must match both setpoint and car needs
-        connector.consumption = std::min(connector.car_consumption, connector.setpoint);
+        unsigned int nb_phases = connector.meter->getNumberOfPhases();
+        if (nb_phases == 1)
+        {
+            consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
+        }
+        else if (nb_phases == 2)
+        {
+            consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
+            consumption_l2 = std::min(connector.car_consumption_l2, connector.setpoint);
+        }
+        else if (nb_phases == 3)
+        {
+            consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
+            consumption_l2 = std::min(connector.car_consumption_l2, connector.setpoint);
+            consumption_l3 = std::min(connector.car_consumption_l3, connector.setpoint);
+        }
     }
 
     // Apply consumption in the meter
-    std::vector<float> currents(connector.meter->getNumberOfPhases());
-    currents.assign(currents.size(), connector.consumption);
+    std::vector<float> currents;
+    currents.push_back(consumption_l1);
+    currents.push_back(consumption_l2);
+    currents.push_back(consumption_l3);
     connector.meter->setCurrents(currents);
 }
