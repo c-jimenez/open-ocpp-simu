@@ -659,20 +659,25 @@ void SimulatedChargePoint::computeCurrentConsumption(ConnectorData& connector)
     {
         // Consumption must match both setpoint and car needs
         unsigned int nb_phases = connector.meter->getNumberOfPhases();
-        if (nb_phases == 1)
+        switch (nb_phases)
         {
-            consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
-        }
-        else if (nb_phases == 2)
-        {
-            consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
-            consumption_l2 = std::min(connector.car_consumption_l2, connector.setpoint);
-        }
-        else if (nb_phases == 3)
-        {
-            consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
-            consumption_l2 = std::min(connector.car_consumption_l2, connector.setpoint);
-            consumption_l3 = std::min(connector.car_consumption_l3, connector.setpoint);
+            case 1:
+                consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
+                break;
+            
+            case 2:
+                consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
+                consumption_l2 = std::min(connector.car_consumption_l2, connector.setpoint);
+                break;
+
+            case 3:
+                consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
+                consumption_l2 = std::min(connector.car_consumption_l2, connector.setpoint);
+                consumption_l3 = std::min(connector.car_consumption_l3, connector.setpoint);
+                break;
+
+            default:
+                break;
         }
     }
 

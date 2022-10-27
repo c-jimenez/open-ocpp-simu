@@ -78,7 +78,7 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
     }
     else
     {
-        std::cout << "topic: " << topic << "\npayload: " << message << std::endl;
+        std::cout << "topic: " << topic << std::endl << "payload: " << message << std::endl;
         // Split topic name
         std::filesystem::path topic_path(topic);
 
@@ -322,7 +322,6 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
             std::stringstream topic;
             topic << m_connectors_topic << connector.id << "/status";
 
-
             // Create the JSON message
             rapidjson::Document msg;
             msg.Parse("{}");
@@ -341,25 +340,12 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
             msg.AddMember(rapidjson::StringRef("car_cable_capacity"), rapidjson::Value(connector.car_cable_capacity), msg.GetAllocator());
             msg.AddMember(rapidjson::StringRef("car_ready"), rapidjson::Value(connector.car_ready), msg.GetAllocator());
 
+            static const char* consumption_str[] = {"consumption_l1", "consumption_l2", "consumption_l3"};
             std::vector<float> currents = connector.meter->getCurrents();
             unsigned int nb_phases = connector.meter->getNumberOfPhases();
-            if (nb_phases == 1)
+            for (unsigned int i = 0; i < nb_phases ; i++)
             {
-                msg.AddMember(rapidjson::StringRef("consumption_l1"), rapidjson::Value(currents[0]), msg.GetAllocator());
-                msg.AddMember(rapidjson::StringRef("consumption_l2"), rapidjson::Value(0), msg.GetAllocator());
-                msg.AddMember(rapidjson::StringRef("consumption_l3"), rapidjson::Value(0), msg.GetAllocator());
-            }
-            else if (nb_phases == 2)
-            {
-                msg.AddMember(rapidjson::StringRef("consumption_l1"), rapidjson::Value(currents[0]), msg.GetAllocator());
-                msg.AddMember(rapidjson::StringRef("consumption_l2"), rapidjson::Value(currents[1]), msg.GetAllocator());
-                msg.AddMember(rapidjson::StringRef("consumption_l3"), rapidjson::Value(0), msg.GetAllocator());
-            }
-            else if (nb_phases == 3)
-            {
-                msg.AddMember(rapidjson::StringRef("consumption_l1"), rapidjson::Value(currents[0]), msg.GetAllocator());
-                msg.AddMember(rapidjson::StringRef("consumption_l2"), rapidjson::Value(currents[1]), msg.GetAllocator());
-                msg.AddMember(rapidjson::StringRef("consumption_l3"), rapidjson::Value(currents[2]), msg.GetAllocator());
+                 msg.AddMember(rapidjson::StringRef(consumption_str[i]), rapidjson::Value(currents[i]), msg.GetAllocator());
             }
 
             rapidjson::StringBuffer                    buffer;
