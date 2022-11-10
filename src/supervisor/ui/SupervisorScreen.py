@@ -234,7 +234,9 @@ class SupervisorScreen(BoxLayout):
                             connector_widget = self.stk_connectors.children[con_index]
                             if isinstance(connector_widget, ConnectorWidget) and connector_widget.con_id == con_id:
                                 connector_widget.status = connector.status
-                                connector_widget.consumption = connector.consumption
+                                connector_widget.consumption_l1 = connector.consumption_l1
+                                connector_widget.consumption_l2 = connector.consumption_l2
+                                connector_widget.consumption_l3 = connector.consumption_l3
                                 break
 
         else:
@@ -302,13 +304,19 @@ class SupervisorScreen(BoxLayout):
                     widget.con_id = connector.id
                     widget.status = connector.status
                     widget.max_current = connector.max_setpoint
-                    widget.consumption = connector.consumption
-                    widget.set_properties(connector.car_consumption, connector.car_cable_capacity,
+                    widget.consumption_l1 = connector.consumption_l1
+                    widget.consumption_l2 = connector.consumption_l2
+                    widget.consumption_l3 = connector.consumption_l3
+                    widget.set_properties(connector.car_consumption_l1, connector.car_consumption_l2, connector.car_consumption_l3, connector.car_cable_capacity,
                                           connector.car_ready, connector.id_tag)
 
                     # Bind to events
                     widget.bind(
-                        car_consumption=self.on_connector_value_changed)
+                        car_consumption_l1=self.on_connector_value_changed)
+                    widget.bind(
+                        car_consumption_l2=self.on_connector_value_changed)
+                    widget.bind(
+                        car_consumption_l3=self.on_connector_value_changed)
                     widget.bind(
                         car_cable=self.on_connector_value_changed)
                     widget.bind(
@@ -323,7 +331,7 @@ class SupervisorScreen(BoxLayout):
         """ Called when a value in the connector has changed """
         # Send new connector values
         self.__cp_mgr.send_connector_values(
-            self.__selected_cp_id, connector.con_id, connector.car_consumption, connector.car_cable, connector.car_ready)
+            self.__selected_cp_id, connector.con_id, connector.car_consumption_l1, connector.car_consumption_l2, connector.car_consumption_l3, connector.car_cable, connector.car_ready)
 
     def on_connector_id_tag_passed(self, connector, *args):
         """ Called when an id tag has been passed on a connector """

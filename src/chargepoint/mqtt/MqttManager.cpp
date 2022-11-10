@@ -25,6 +25,7 @@ SOFTWARE.
 #include "MqttManager.h"
 #include "SimulatedChargePointConfig.h"
 #include "Topics.h"
+#include "MeterSimulator.h"
 #include "json.h"
 
 #include <cstring>
@@ -58,6 +59,8 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
     (void)qos;
     (void)retained;
 
+    std::cout << "MQTT message received!" << std::endl;
+
     // Decode message
     bool                valid = false;
     rapidjson::Document payload;
@@ -75,6 +78,7 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
     }
     else
     {
+        std::cout << "topic: " << topic << std::endl << "payload: " << message << std::endl;
         // Split topic name
         std::filesystem::path topic_path(topic);
 
@@ -128,12 +132,28 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
                             connector_data.car_ready = ready.GetBool();
                         }
                     }
-                    if (payload.HasMember("consumption"))
+                    if (payload.HasMember("consumption_l1"))
                     {
-                        rapidjson::Value& consumption = payload["consumption"];
-                        if (consumption.IsFloat())
+                        rapidjson::Value& consumption_l1 = payload["consumption_l1"];
+                        if (consumption_l1.IsFloat())
                         {
-                            connector_data.car_consumption = consumption.GetFloat();
+                            connector_data.car_consumption_l1 = consumption_l1.GetFloat();
+                        }
+                    }
+                    if (payload.HasMember("consumption_l2"))
+                    {
+                        rapidjson::Value& consumption_l2 = payload["consumption_l2"];
+                        if (consumption_l2.IsFloat())
+                        {
+                            connector_data.car_consumption_l2 = consumption_l2.GetFloat();
+                        }
+                    }
+                    if (payload.HasMember("consumption_l3"))
+                    {
+                        rapidjson::Value& consumption_l3 = payload["consumption_l3"];
+                        if (consumption_l3.IsFloat())
+                        {
+                            connector_data.car_consumption_l3 = consumption_l3.GetFloat();
                         }
                     }
                 }
@@ -185,10 +205,10 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
         std::cout << "Connecting to the broker (" << m_config.mqttConfig().brokerUrl() << ")..." << std::endl;
         if (m_mqtt->connect(m_config.mqttConfig().brokerUrl()))
         {
-            std::cout << "Subscribing to charge point's command topic..." << std::endl;
+            std::cout << "Subscribing to charge point's command topic: " << chargepoint_cmd_topic << std::endl;
             if (m_mqtt->subscribe(chargepoint_cmd_topic))
             {
-                std::cout << "Subscribing to charge point's connector topics..." << std::endl;
+                std::cout << "Subscribing to charge point's connector topics: " << chargepoint_car_topics << " and " << chargepoint_tag_topics << std::endl;
                 if (m_mqtt->subscribe(chargepoint_car_topics) && m_mqtt->subscribe(chargepoint_tag_topics))
                 {
                     // Wait for disconnection or end of application
@@ -267,7 +287,9 @@ void MqttManager::updateData(std::vector<ConnectorData>& connectors) const
         const ConnectorData& mqtt_data = m_connectors[connector.id - 1u];
         connector.car_cable_capacity   = mqtt_data.car_cable_capacity;
         connector.car_ready            = mqtt_data.car_ready;
-        connector.car_consumption      = mqtt_data.car_consumption;
+        connector.car_consumption_l1   = mqtt_data.car_consumption_l1;
+        connector.car_consumption_l2   = mqtt_data.car_consumption_l2;
+        connector.car_consumption_l3   = mqtt_data.car_consumption_l3;
         connector.fault_pending        = mqtt_data.fault_pending;
     }
 }
@@ -312,10 +334,19 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
             msg.AddMember(rapidjson::StringRef("max_setpoint"), rapidjson::Value(connector.max_setpoint), msg.GetAllocator());
             msg.AddMember(rapidjson::StringRef("ocpp_setpoint"), rapidjson::Value(connector.ocpp_setpoint), msg.GetAllocator());
             msg.AddMember(rapidjson::StringRef("setpoint"), rapidjson::Value(connector.setpoint), msg.GetAllocator());
-            msg.AddMember(rapidjson::StringRef("consumption"), rapidjson::Value(connector.consumption), msg.GetAllocator());
-            msg.AddMember(rapidjson::StringRef("car_consumption"), rapidjson::Value(connector.car_consumption), msg.GetAllocator());
+            msg.AddMember(rapidjson::StringRef("car_consumption_l1"), rapidjson::Value(connector.car_consumption_l1), msg.GetAllocator());
+            msg.AddMember(rapidjson::StringRef("car_consumption_l2"), rapidjson::Value(connector.car_consumption_l2), msg.GetAllocator());
+            msg.AddMember(rapidjson::StringRef("car_consumption_l3"), rapidjson::Value(connector.car_consumption_l3), msg.GetAllocator());
             msg.AddMember(rapidjson::StringRef("car_cable_capacity"), rapidjson::Value(connector.car_cable_capacity), msg.GetAllocator());
             msg.AddMember(rapidjson::StringRef("car_ready"), rapidjson::Value(connector.car_ready), msg.GetAllocator());
+
+            static const char* consumption_str[] = {"consumption_l1", "consumption_l2", "consumption_l3"};
+            std::vector<float> currents = connector.meter->getCurrents();
+            unsigned int nb_phases = connector.meter->getNumberOfPhases();
+            for (unsigned int i = 0; i < nb_phases ; i++)
+            {
+                 msg.AddMember(rapidjson::StringRef(consumption_str[i]), rapidjson::Value(currents[i]), msg.GetAllocator());
+            }
 
             rapidjson::StringBuffer                    buffer;
             rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

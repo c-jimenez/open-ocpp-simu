@@ -31,23 +31,29 @@
     con_id: 1
     status: "Dead"
     max_current: 16
-    consumption: 0
-    car_consumption: sl_car_consumption.value
+    consumption_l1: 0
+    consumption_l2: 0
+    consumption_l3: 0
+    car_consumption_l1: sl_car_consumption_l1.value
+    car_consumption_l2: sl_car_consumption_l2.value
+    car_consumption_l3: sl_car_consumption_l3.value
     car_cable: sl_car_cable.value
     car_ready: not tb_car_ready.active
     id_tag: ti_id_tag.text
 
-    sl_car_consumption: sl_car_consumption
+    sl_car_consumption_l1: sl_car_consumption_l1
+    sl_car_consumption_l2: sl_car_consumption_l2
+    sl_car_consumption_l3: sl_car_consumption_l3
     sl_car_cable: sl_car_cable
     tb_car_ready: tb_car_ready
     ti_id_tag: ti_id_tag
     bt_id_tag: bt_id_tag
 
     size_hint: None, None
-    size: 400, 200
+    size: 400, 280
 
     connector_status_text: 'Connector : ' + str(root.con_id) + ' - ' + root.status
-    connector_status_charging_text: self.connector_status_text + ' (' + str(root.consumption) + 'A)'
+    connector_status_charging_text: self.connector_status_text + ' (' + str(root.consumption_l1) + '/' + str(root.consumption_l2) + '/' + str(root.consumption_l3) + 'A)'
     
     BackgroundLabel:
         text: root.connector_status_charging_text if root.status == "Charging" else root.connector_status_text
@@ -129,7 +135,7 @@
         size: 400, 40
 
         Label:
-            text: 'Car consumption'
+            text: 'Car consumption Phase1'
             text_size: self.size
             halign: 'center'
             valign: 'middle'
@@ -137,7 +143,7 @@
             size: 150, 0
 
         Slider:
-            id: sl_car_consumption
+            id: sl_car_consumption_l1
             min: 0
             max: root.max_current
             step: 1
@@ -146,7 +152,71 @@
             size: 150, 0
 
         Label:
-            text: str(sl_car_consumption.value) + 'A'
+            text: str(sl_car_consumption_l1.value) + 'A'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 50, 0
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: None, None
+        size: 400, 40
+
+        Label:
+            text: 'Car consumption Phase2'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+
+        Slider:
+            id: sl_car_consumption_l2
+            min: 0
+            max: root.max_current
+            step: 1
+            orientation: 'horizontal'
+            size_hint: None, 1.
+            size: 150, 0
+
+        Label:
+            text: str(sl_car_consumption_l2.value) + 'A'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 50, 0
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: None, None
+        size: 400, 40
+
+        Label:
+            text: 'Car consumption Phase3'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+
+        Slider:
+            id: sl_car_consumption_l3
+            min: 0
+            max: root.max_current
+            step: 1
+            orientation: 'horizontal'
+            size_hint: None, 1.
+            size: 150, 0
+
+        Label:
+            text: str(sl_car_consumption_l3.value) + 'A'
             text_size: self.size
             halign: 'center'
             valign: 'middle'

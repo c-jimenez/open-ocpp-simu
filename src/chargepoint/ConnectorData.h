@@ -41,7 +41,9 @@ struct ConnectorData
           max_setpoint(0.f),
           ocpp_setpoint(0.f),
           setpoint(0.f),
-          car_consumption(0.f),
+          car_consumption_l1(0.f),
+          car_consumption_l2(0.f),
+          car_consumption_l3(0.f),
           car_cable_capacity(0.f),
           car_ready(true),
           preparing_start(),
@@ -63,10 +65,10 @@ struct ConnectorData
     float ocpp_setpoint;
     /** @brief Setpoint */
     float setpoint;
-    /** @brief Consumption */
-    float consumption;
     /** @brief Car consumption */
-    float car_consumption;
+    float car_consumption_l1;
+    float car_consumption_l2;
+    float car_consumption_l3;
     /** @brief Car cable capacity */
     float car_cable_capacity;
     /** @brief Indicate that the car is ready to charge */
