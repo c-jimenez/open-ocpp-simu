@@ -21,6 +21,17 @@ These 3 applications are communicating using the MQTT protocol and the simulated
 ## Install and build
 
 ### Pre-requisites
+The project can be be built using ether docker or natively.
+
+### With Docker
+Docker must be installed.
+
+Run the makefile target:
+```
+make docker-build-images
+```
+
+### Without Docker
 
 * Open OCPP library (see [Build and installation procedure](https://github.com/c-jimenez/open-ocpp#build))
 * [Paho MQTT library](https://www.eclipse.org/paho/) 1.3.8 or greater
@@ -38,7 +49,7 @@ On Debian the pre-requisites (except for Open OCPP) can be installed using the f
 
 ```
 sudo apt install python3 python3-pip mosquitto libpaho-mqtt-dev
-python3 -m pip install kivy paho-mqtt
+python3 -m pip install -r requirements.txt
 ```
 
 ### Build options
@@ -54,6 +65,8 @@ Additionnaly, the **CMakeLists_Options.txt** contains several options that can b
 An helper makefile is available at project's level to simplify the use of CMake. Just use the one of the following commands to build using gcc or gcc without cross compilation :
 
 ```make gcc-native``` or ```make clang-native``` or ```make gcc-native BUILD_TYPE=Debug``` or ```make clang-native BUILD_TYPE=Debug```
+
+The option ```DISABLE_DOCKER=1``` allows to build natively without docker.
 
 This makefile also contains the corresponding cleaning targets :
 
