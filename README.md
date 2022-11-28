@@ -330,12 +330,22 @@ The expected command payload is :
  }
  ```
 
- Each connector of the simulated Charge Point are listening to the following topic to simulate interaction with a user resenting an RFID card : **cp_simu/cps/simu_cp_XXX/connectors/N/id_tag** where **N** stands for the connector number.
+Each connector of the simulated Charge Point are listening to the following topic to simulate interaction with a user resenting an RFID card : **cp_simu/cps/simu_cp_XXX/connectors/N/id_tag** where **N** stands for the connector number.
 
 The expected command payload is :
 
  ```
  {
     "id": "ID_TAG"
+ }
+ ```
+
+Each connector of the simulated Charge Point are listening to the following topic to force the Charge Point in faulted status : **cp_simu/cps/simu_cp_XXX/connectors/N/faulted** where **N** stands for the connector number.
+
+The expected command payload is :
+
+ ```
+ {
+    "faulted": false
  }
  ```
