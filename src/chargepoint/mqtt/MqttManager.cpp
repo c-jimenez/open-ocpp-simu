@@ -157,7 +157,7 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
                         }
                     }
                 }
-                else
+                else if (topic_path.filename().compare("id_tag") == 0)
                 {
                     if (payload.HasMember("id"))
                     {
@@ -165,6 +165,17 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
                         if (id.IsString())
                         {
                             connector_data.id_tag = id.GetString();
+                        }
+                    }
+                }
+                else if (topic_path.filename().compare("faulted") == 0)
+                {
+                    if (payload.HasMember("faulted"))
+                    {
+                        rapidjson::Value& faulted = payload["faulted"];
+                        if (faulted.IsBool())
+                        {
+                            connector_data.fault_pending = faulted.GetBool();
                         }
                     }
                 }
@@ -184,11 +195,12 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
     std::string chargepoint_topic(CHARGE_POINTS_TOPIC);
     chargepoint_topic += m_config.stackConfig().chargePointIdentifier() + "/";
 
-    std::string chargepoint_cmd_topic  = chargepoint_topic + "cmd";
-    std::string chargepoint_car_topics = chargepoint_topic + "connectors/+/car";
-    std::string chargepoint_tag_topics = chargepoint_topic + "connectors/+/id_tag";
-    m_status_topic                     = chargepoint_topic + "status";
-    m_connectors_topic                 = chargepoint_topic + "connectors/";
+    std::string chargepoint_cmd_topic      = chargepoint_topic + "cmd";
+    std::string chargepoint_car_topics     = chargepoint_topic + "connectors/+/car";
+    std::string chargepoint_tag_topics     = chargepoint_topic + "connectors/+/id_tag";
+    std::string chargepoint_faulted_topics = chargepoint_topic + "connectors/+/faulted";
+    m_status_topic                         = chargepoint_topic + "status";
+    m_connectors_topic                     = chargepoint_topic + "connectors/";
 
     // MQTT client
     m_mqtt = IMqttClient::create(m_config.stackConfig().chargePointIdentifier());
@@ -208,8 +220,8 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
             std::cout << "Subscribing to charge point's command topic: " << chargepoint_cmd_topic << std::endl;
             if (m_mqtt->subscribe(chargepoint_cmd_topic))
             {
-                std::cout << "Subscribing to charge point's connector topics: " << chargepoint_car_topics << " and " << chargepoint_tag_topics << std::endl;
-                if (m_mqtt->subscribe(chargepoint_car_topics) && m_mqtt->subscribe(chargepoint_tag_topics))
+                std::cout << "Subscribing to charge point's connector topics: " << chargepoint_car_topics << " and " << chargepoint_tag_topics << " and " << chargepoint_faulted_topics << std::endl;
+                if (m_mqtt->subscribe(chargepoint_car_topics) && m_mqtt->subscribe(chargepoint_tag_topics) && m_mqtt->subscribe(chargepoint_faulted_topics))
                 {
                     // Wait for disconnection or end of application
                     std::cout << "Ready!" << std::endl;
