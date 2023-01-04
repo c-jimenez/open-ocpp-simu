@@ -355,9 +355,16 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
             static const char* consumption_str[] = {"consumption_l1", "consumption_l2", "consumption_l3"};
             std::vector<float> currents = connector.meter->getCurrents();
             unsigned int nb_phases = connector.meter->getNumberOfPhases();
-            for (unsigned int i = 0; i < nb_phases ; i++)
+            for (unsigned int i = 0; i < 3 ; i++)
             {
-                 msg.AddMember(rapidjson::StringRef(consumption_str[i]), rapidjson::Value(currents[i]), msg.GetAllocator());
+                if (i < nb_phases)
+                {
+                    msg.AddMember(rapidjson::StringRef(consumption_str[i]), rapidjson::Value(currents[i]), msg.GetAllocator());
+                }
+                else
+                {
+                    msg.AddMember(rapidjson::StringRef(consumption_str[i]), rapidjson::Value(0), msg.GetAllocator());
+                }
             }
 
             rapidjson::StringBuffer                    buffer;
