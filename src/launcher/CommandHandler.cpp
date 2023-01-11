@@ -234,11 +234,7 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 // Build command line
                 std::stringstream cmd;
 #ifndef _MSC_VER
-                cmd << "./";
-#endif // _MSC_VER
-                cmd << "chargepoint";
-#ifdef _MSC_VER
-                cmd << ".exe";
+                cmd << "./chargepoint";
 #endif // _MSC_VER
                 cmd << " -w \"" << chargepoint_dir << "\"";
                 cmd << " -t " << central_system;
@@ -249,10 +245,34 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 cmd << " -b " << m_broker_url;
                 cmd << " -m " << max_current;
                 cmd << " -i " << max_current_per_connector;
+#ifndef _MSC_VER
                 cmd << " &" << std::endl;
+#endif // _MSC_VER
 
                 // Start charge point
+#ifndef _MSC_VER
                 system(cmd.str().c_str());
+#else // _MSC_VER
+                STARTUPINFO         si;
+                PROCESS_INFORMATION pi;
+
+                ZeroMemory(&si, sizeof(si));
+                si.cb = sizeof(si);
+                ZeroMemory(&pi, sizeof(pi));
+
+                CreateProcess("chargepoint.exe",
+                              const_cast<char*>(cmd.str().c_str()),
+                              nullptr,
+                              nullptr,
+                              FALSE,
+                              NORMAL_PRIORITY_CLASS,
+                              nullptr,
+                              nullptr,
+                              &si,
+                              &pi);
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+#endif // _MSC_VER
                 total_started++;
             }
         }

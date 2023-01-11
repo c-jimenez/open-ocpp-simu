@@ -47,7 +47,8 @@ struct ConnectorData
           car_cable_capacity(0.f),
           car_ready(true),
           preparing_start(),
-          fault_pending(false)
+          fault_pending(false),
+          unavailable_pending(false)
     {
     }
 
