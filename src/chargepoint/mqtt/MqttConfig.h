@@ -25,7 +25,7 @@ SOFTWARE.
 #ifndef MQTTCONFIG_H
 #define MQTTCONFIG_H
 
-#include <IniFile.h>
+#include <openocpp/IniFile.h>
 
 /** @brief Section name for the parameters */
 static const std::string MQTT_PARAMS = "Mqtt";

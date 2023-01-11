@@ -25,8 +25,8 @@ SOFTWARE.
 #ifndef CHARGEPOINTCONFIG_H
 #define CHARGEPOINTCONFIG_H
 
-#include <IChargePointConfig.h>
-#include <IniFile.h>
+#include <openocpp/IChargePointConfig.h>
+#include <openocpp/IniFile.h>
 
 /** @brief Section name for the parameters */
 static const std::string STACK_PARAMS = "ChargePoint";

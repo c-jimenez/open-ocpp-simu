@@ -17,8 +17,7 @@ target_link_directories(launcher PRIVATE ${BIN_DIR})
 # Dependencies
 target_link_libraries(launcher 
     mqtt_client
-    PkgConfig::PKG_OPEN_OCPP
-    json
+    ${OPENOCPP_LIB}
 )
 
 # Copy to binary directory
@@ -26,3 +25,9 @@ ADD_CUSTOM_COMMAND(TARGET launcher
           POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/config/env_setup.json ${BIN_DIR}/
 )
+if (MSVC)
+ADD_CUSTOM_COMMAND(TARGET launcher
+          POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/3rdparty/eclipse-paho-mqtt-c/lib/paho-mqtt3cs.dll ${BIN_DIR}/
+)
+endif()

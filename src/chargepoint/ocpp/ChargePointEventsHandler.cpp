@@ -26,13 +26,17 @@ SOFTWARE.
 #include "MeterSimulator.h"
 #include "SimulatedChargePointConfig.h"
 
-#include <CertificateRequest.h>
-#include <PrivateKey.h>
-#include <Sha2.h>
-#include <String.h>
-
+#include <openocpp/CertificateRequest.h>
+#include <openocpp/PrivateKey.h>
+#include <openocpp/Sha2.h>
+#include <openocpp/StringHelpers.h>
 #include <fstream>
 #include <iostream>
+
+// With MSVC compiler, the system() call returns directly the command's return value
+#ifdef _MSC_VER
+#define WEXITSTATUS(x) (x)
+#endif // _MSC_VER
 
 using namespace std;
 using namespace ocpp::types;
@@ -109,14 +113,14 @@ ocpp::types::AvailabilityStatus ChargePointEventsHandler::changeAvailabilityRequ
     return ret;
 }
 
-/** @copydoc unsigned int IChargePointEventsHandler::getTxStartStopMeterValue(unsigned int) */
-unsigned int ChargePointEventsHandler::getTxStartStopMeterValue(unsigned int connector_id)
+/** @copydoc int IChargePointEventsHandler::getTxStartStopMeterValue(unsigned int) */
+int ChargePointEventsHandler::getTxStartStopMeterValue(unsigned int connector_id)
 {
-    unsigned int value = 0;
+    int value = 0;
     cout << "Get start/stop meter value for connector " << connector_id << " : ";
     if (connector_id > 0)
     {
-        value = static_cast<unsigned int>(m_connectors->at(connector_id - 1u).meter->getEnergy());
+        value = static_cast<int>(m_connectors->at(connector_id - 1u).meter->getEnergy());
     }
     cout << value << endl;
     return value;
@@ -491,7 +495,7 @@ ocpp::types::CertificateStatusEnumType ChargePointEventsHandler::caCertificateRe
 
             std::stringstream name;
             name << "fw_" << sha256.resultString() << ".pem";
-            ca_filename = m_working_dir / name.str();
+            ca_filename = (m_working_dir / name.str()).string();
         }
         else
         {
@@ -508,7 +512,7 @@ ocpp::types::CertificateStatusEnumType ChargePointEventsHandler::caCertificateRe
 
             std::stringstream name;
             name << "cs_" << sha256.resultString() << ".pem";
-            ca_filename = m_working_dir / name.str();
+            ca_filename = (m_working_dir / name.str()).string();
         }
 
         // Check if the certificate must be saved
@@ -558,7 +562,7 @@ bool ChargePointEventsHandler::chargePointCertificateReceived(const ocpp::x509::
 
     std::stringstream name;
     name << "cp_" << sha256.resultString() << ".pem";
-    std::string cert_filename = m_working_dir / name.str();
+    std::string cert_filename = (m_working_dir / name.str()).string();
 
     // Save certificate
     if (certificate.toFile(cert_filename))
@@ -621,7 +625,7 @@ ocpp::types::DeleteCertificateStatusEnumType ChargePointEventsHandler::deleteCer
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = dir_entry.path().filename();
+            std::string filename = dir_entry.path().filename().string();
             if ((ocpp::helpers::startsWith(filename, "fw_") || ocpp::helpers::startsWith(filename, "cs_")) &&
                 ocpp::helpers::endsWith(filename, ".pem"))
             {
@@ -688,7 +692,7 @@ void ChargePointEventsHandler::getInstalledCertificates(ocpp::types::Certificate
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = dir_entry.path().filename();
+            std::string filename = dir_entry.path().filename().string();
             if (type == CertificateUseEnumType::ManufacturerRootCertificate)
             {
                 if (ocpp::helpers::startsWith(filename, "fw_") && ocpp::helpers::endsWith(filename, ".pem"))
@@ -764,7 +768,7 @@ bool ChargePointEventsHandler::hasChargePointCertificateInstalled()
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = dir_entry.path().filename();
+            std::string filename = dir_entry.path().filename().string();
             if (ocpp::helpers::startsWith(filename, "cp_") && ocpp::helpers::endsWith(filename, ".pem"))
             {
                 std::string certificate_key = dir_entry.path().string() + ".key";
@@ -795,7 +799,7 @@ ocpp::types::UpdateFirmwareStatusEnumType ChargePointEventsHandler::checkFirmwar
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = dir_entry.path().filename();
+            std::string filename = dir_entry.path().filename().string();
             if (ocpp::helpers::startsWith(filename, "fw_") && ocpp::helpers::endsWith(filename, ".pem"))
             {
                 ca_certificates.emplace_back(dir_entry.path());
@@ -832,7 +836,7 @@ bool ChargePointEventsHandler::iso15118CheckEvCertificate(const ocpp::x509::Cert
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = dir_entry.path().filename();
+            std::string filename = dir_entry.path().filename().string();
             if (ocpp::helpers::startsWith(filename, "iso_mo_root_") && ocpp::helpers::endsWith(filename, ".pem"))
             {
                 Certificate mo_cert(dir_entry.path());
@@ -865,7 +869,7 @@ bool ChargePointEventsHandler::iso15118ChargePointCertificateReceived(const ocpp
 
     std::stringstream name;
     name << "iso_cp_" << sha256.resultString() << ".pem";
-    std::string cert_filename = m_working_dir / name.str();
+    std::string cert_filename = (m_working_dir / name.str()).string();
 
     // Save certificate
     if (certificate.toFile(cert_filename))
@@ -920,7 +924,7 @@ void ChargePointEventsHandler::iso15118GetInstalledCertificates(
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = dir_entry.path().filename();
+            std::string filename = (dir_entry.path().filename()).string();
             if (v2g_root_certificate)
             {
                 if (ocpp::helpers::startsWith(filename, "iso_v2g_root_") && ocpp::helpers::endsWith(filename, ".pem"))
@@ -979,14 +983,14 @@ ocpp::types::InstallCertificateStatusEnumType ChargePointEventsHandler::iso15118
             // V2 root certificate
             std::stringstream name;
             name << "iso_v2g_root_" << sha256.resultString() << ".pem";
-            cert_filename = m_working_dir / name.str();
+            cert_filename = (m_working_dir / name.str()).string();
         }
         else
         {
             // MO root certificate
             std::stringstream name;
             name << "iso_mo_root_" << sha256.resultString() << ".pem";
-            cert_filename = m_working_dir / name.str();
+            cert_filename = (m_working_dir / name.str()).string();
         }
 
         // Save certificate
@@ -1024,7 +1028,7 @@ unsigned int ChargePointEventsHandler::getNumberOfCaCertificateInstalled(bool ma
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = dir_entry.path().filename();
+            std::string filename = dir_entry.path().filename().string();
             if (manufacturer && ocpp::helpers::startsWith(filename, "fw_") && ocpp::helpers::endsWith(filename, ".pem"))
             {
                 count++;

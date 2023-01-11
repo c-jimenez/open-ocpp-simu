@@ -26,9 +26,9 @@ SOFTWARE.
 #define CHARGEPOINTEVENTSHANDLER_H
 
 #include "ConnectorData.h"
-#include "IChargePoint.h"
-#include "IChargePointEventsHandler.h"
 
+#include <openocpp/IChargePoint.h>
+#include <openocpp/IChargePointEventsHandler.h>
 #include <filesystem>
 #include <vector>
 
@@ -69,8 +69,8 @@ class ChargePointEventsHandler : public ocpp::chargepoint::IChargePointEventsHan
     ocpp::types::AvailabilityStatus changeAvailabilityRequested(unsigned int                  connector_id,
                                                                 ocpp::types::AvailabilityType availability) override;
 
-    /** @copydoc unsigned int IChargePointEventsHandler::getTxStartStopMeterValue(unsigned int) */
-    unsigned int getTxStartStopMeterValue(unsigned int connector_id) override;
+    /** @copydoc int IChargePointEventsHandler::getTxStartStopMeterValue(unsigned int) */
+    int getTxStartStopMeterValue(unsigned int connector_id) override;
 
     /** @copydoc void IChargePointEventsHandler::reservationStarted(unsigned int) */
     void reservationStarted(unsigned int connector_id) override;

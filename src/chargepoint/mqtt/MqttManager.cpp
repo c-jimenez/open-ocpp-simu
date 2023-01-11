@@ -26,14 +26,19 @@ SOFTWARE.
 #include "SimulatedChargePointConfig.h"
 #include "Topics.h"
 #include "MeterSimulator.h"
-#include "json.h"
 
+#include <openocpp/json.h>
 #include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <thread>
+
+#ifdef _MSC_VER
+#include <Windows.h>
+#else // _MSC_VER
 #include <unistd.h>
+#endif // _MSC_VER
 
 /** @brief Constructor */
 MqttManager::MqttManager(SimulatedChargePointConfig& config)
@@ -106,7 +111,7 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
             auto iter = topic_path.end();
             iter--;
             iter--;
-            std::string  connector_str = *iter;
+            std::string  connector_str = iter->string();
             unsigned int connector     = static_cast<unsigned int>(std::atoi(connector_str.c_str()));
             if ((connector > 0) && (connector <= m_connectors.size()))
             {
@@ -382,7 +387,11 @@ std::string MqttManager::buildStatusMessage(const char* status, unsigned int nb_
 {
     rapidjson::Document msg;
     msg.Parse("{}");
+#ifdef _MSC_VER
+    msg.AddMember(rapidjson::StringRef("pid"), rapidjson::Value(static_cast<uint64_t>(GetCurrentProcessId())), msg.GetAllocator());
+#else // _MSC_VER
     msg.AddMember(rapidjson::StringRef("pid"), rapidjson::Value(getpid()), msg.GetAllocator());
+#endif // _MSC_VER
     msg.AddMember(rapidjson::StringRef("status"), rapidjson::Value(status, msg.GetAllocator()).Move(), msg.GetAllocator());
     msg.AddMember(rapidjson::StringRef("vendor"),
                   rapidjson::Value(m_config.stackConfig().chargePointVendor().c_str(), msg.GetAllocator()).Move(),

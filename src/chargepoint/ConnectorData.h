@@ -25,7 +25,7 @@ SOFTWARE.
 #ifndef CONNECTORDATA_H
 #define CONNECTORDATA_H
 
-#include <IChargePoint.h>
+#include <openocpp/IChargePoint.h>
 
 class MeterSimulator;
 

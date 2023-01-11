@@ -25,7 +25,7 @@ SOFTWARE.
 #ifndef METERSIMULATOR_H
 #define METERSIMULATOR_H
 
-#include <Timer.h>
+#include <openocpp/Timer.h>
 
 #include <mutex>
 
