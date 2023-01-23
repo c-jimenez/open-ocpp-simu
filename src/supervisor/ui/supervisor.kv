@@ -174,6 +174,7 @@ SupervisorScreen:
             disabled: not self.active or not bt_connect.connected or not lbl_launcher_status.alive
             on_release: root.bt_kill_restart_cp_click()
 
+
         Button:
             id: bt_save_setup
             text: 'Save setup'
@@ -197,6 +198,30 @@ SupervisorScreen:
 
             disabled: not bt_connect.connected or not lbl_launcher_status.alive
             on_release: root.bt_load_setup_click()
+
+        Button:
+            id: bt_restart_all_cp
+            text: 'Restart all CP'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 100, 0
+
+            disabled: not bt_connect.connected or not lbl_launcher_status.alive
+            on_release: root.bt_restart_all_cp()
+
+        Button:
+            id: bt_kill_all_cp
+            text: 'kill all CP'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 100, 0
+
+            disabled: not bt_connect.connected or not lbl_launcher_status.alive
+            on_release: root.bt_kill_all_cp()
 
         BackgroundLabel:
             id: lbl_launcher_status
