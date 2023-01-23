@@ -185,6 +185,11 @@ class SupervisorScreen(BoxLayout):
         content.popup = popup
         popup.open()
 
+    def bt_restart_all_cp(self) -> None:
+        self.__cp_mgr.restart_all_charge_points()
+    def bt_kill_all_cp(self) -> None:
+        self.__cp_mgr.kill_all_charge_points()
+
     def __on_connection_change(self, connected: bool) -> None:
         """ Called when MQTT connection state has changed """
         if connected:
