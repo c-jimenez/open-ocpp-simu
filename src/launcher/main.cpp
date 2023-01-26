@@ -25,8 +25,8 @@ SOFTWARE.
 #include "CommandHandler.h"
 #include "IMqttClient.h"
 #include "Topics.h"
-#include "json.h"
 
+#include <openocpp/json.h>
 #include <chrono>
 #include <cstring>
 #include <filesystem>
@@ -131,13 +131,13 @@ int main(int argc, char* argv[])
     if (!config_file.empty())
     {
         std::string  config_data;
-        std::fstream file(config_file, file.in | file.binary | file.ate);
+        std::fstream file(config_file, std::fstream::in | std::fstream::binary | std::fstream::ate);
         if (file.is_open())
         {
             // Read the whole file
             auto filesize = file.tellg();
             file.seekg(0, file.beg);
-            config_data.resize(filesize);
+            config_data.resize(static_cast<size_t>(filesize));
             file.read(&config_data[0], filesize);
 
             // Parse JSON data

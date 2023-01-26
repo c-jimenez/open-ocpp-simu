@@ -58,7 +58,7 @@ void SimulatedChargePoint::start()
     // MQTT connectivity
     std::cout << "Starting MQTT connectivity..." << std::endl;
     MqttManager mqtt(m_config);
-    std::thread mqtt_thread([&mqtt, this] { mqtt.start(m_nb_phases, m_max_charge_point_current); });
+    std::thread mqtt_thread([&mqtt, this] { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_current)); });
 
     // OCPP connectivity
     std::cout << "Starting OCPP connectivity..." << std::endl;

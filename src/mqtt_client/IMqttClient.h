@@ -134,6 +134,9 @@ class IMqttClient
     class IListener
     {
       public:
+        /** @brief Destructor */
+        virtual ~IListener() { }
+
         /** @brief Called when the connection with the broker has been lost */
         virtual void mqttConnectionLost() = 0;
 

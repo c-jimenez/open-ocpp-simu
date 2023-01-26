@@ -25,8 +25,8 @@ SOFTWARE.
 #ifndef OCPPCONFIG_H
 #define OCPPCONFIG_H
 
-#include <IOcppConfig.h>
-#include <IniFile.h>
+#include <openocpp/IOcppConfig.h>
+#include <openocpp/IniFile.h>
 
 /** @brief Section name for the parameters */
 static const std::string OCPP_PARAMS = "Ocpp";

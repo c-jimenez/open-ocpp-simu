@@ -20,16 +20,25 @@ include_directories(config mqtt ocpp)
 target_link_directories(chargepoint PRIVATE ${BIN_DIR})
 
 # Dependencies
+if (NOT MSVC)
+    set(OPENOCPP_SIMU_CHARGEPOINT_LIBS pthread)
+else()
+    set(OPENOCPP_SIMU_CHARGEPOINT_LIBS websockets_static.lib sqlite3 OpenSSL::SSL OpenSSL::Crypto Ws2_32 Crypt32)
+endif()
 target_link_libraries(chargepoint 
-    mqtt_client
-    PkgConfig::PKG_OPEN_OCPP
-    pthread
-)
+        mqtt_client
+        ${OPENOCPP_LIB}
+        ${OPENOCPP_SIMU_CHARGEPOINT_LIBS}
+    )
 
 # Copy to binary directory
 ADD_CUSTOM_COMMAND(TARGET chargepoint
           POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/config/config.ini ${BIN_DIR}/
 )
-
-
+if (MSVC)
+ADD_CUSTOM_COMMAND(TARGET chargepoint
+          POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/3rdparty/eclipse-paho-mqtt-c/lib/paho-mqtt3cs.dll ${BIN_DIR}/
+)
+endif()

@@ -129,11 +129,11 @@ bool PahoMqttClient::publish(const std::string& topic, const std::string& messag
         // Publish message
         MQTTClient_deliveryToken token;
         if (MQTTClient_publish(
-                m_client, topic.c_str(), message.size(), message.c_str(), static_cast<int>(qos), static_cast<int>(retained), &token) ==
+                m_client, topic.c_str(), static_cast<int>(message.size()), message.c_str(), static_cast<int>(qos), static_cast<int>(retained), &token) ==
             MQTTCLIENT_SUCCESS)
         {
             // Wait for completion
-            if (MQTTClient_waitForCompletion(m_client, token, static_cast<int>(m_pub_timeout.count())) == MQTTCLIENT_SUCCESS)
+            if (MQTTClient_waitForCompletion(m_client, token, static_cast<unsigned int>(m_pub_timeout.count())) == MQTTCLIENT_SUCCESS)
             {
                 ret = true;
             }
@@ -216,7 +216,7 @@ bool PahoMqttClient::isConnected() const
 }
 
 /** @brief Callback for connection loss with broker */
-void PahoMqttClient::onConnectionLost(void* context, char* cause)
+void PahoMqttClient::onConnectionLost(void* context, char* cause) noexcept
 {
     (void)cause;
 
@@ -233,7 +233,7 @@ void PahoMqttClient::onConnectionLost(void* context, char* cause)
 }
 
 /** @brief Callback for message reception */
-int PahoMqttClient::onMessageReceived(void* context, char* topic, int topic_len, MQTTClient_message* message)
+int PahoMqttClient::onMessageReceived(void* context, char* topic, int topic_len, MQTTClient_message* message) noexcept
 {
     (void)topic_len;
 

@@ -84,9 +84,9 @@ class PahoMqttClient : public IMqttClient
     MQTTClient_willOptions m_will;
 
     /** @brief Callback for connection loss with broker */
-    static void onConnectionLost(void* context, char* cause);
+    static void onConnectionLost(void* context, char* cause) noexcept;
     /** @brief Callback for message reception */
-    static int onMessageReceived(void* context, char* topic, int topic_len, MQTTClient_message* message);
+    static int onMessageReceived(void* context, char* topic, int topic_len, MQTTClient_message* message) noexcept;
 };
 
 #endif // PAHOMQTTCLIENT_H

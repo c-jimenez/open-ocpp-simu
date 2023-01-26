@@ -25,7 +25,7 @@ SOFTWARE.
 #ifndef CONNECTORDATA_H
 #define CONNECTORDATA_H
 
-#include <IChargePoint.h>
+#include <openocpp/IChargePoint.h>
 
 class MeterSimulator;
 
@@ -47,7 +47,8 @@ struct ConnectorData
           car_cable_capacity(0.f),
           car_ready(true),
           preparing_start(),
-          fault_pending(false)
+          fault_pending(false),
+          unavailable_pending(false)
     {
     }
 

@@ -27,7 +27,7 @@ SOFTWARE.
 #include "SimulatedChargePoint.h"
 #include "SimulatedChargePointConfig.h"
 
-#include <IChargePoint.h>
+#include <openocpp/IChargePoint.h>
 
 #include <chrono>
 #include <iostream>
@@ -114,13 +114,13 @@ int main(int argc, char* argv[])
             {
                 argv++;
                 argc--;
-                nb_connectors = std::atoi(*argv);
+                nb_connectors = static_cast<unsigned int>(std::atoi(*argv));
             }
             else if ((strcmp(*argv, "-p") == 0) && (argc > 1))
             {
                 argv++;
                 argc--;
-                nb_phases = std::atoi(*argv);
+                nb_phases = static_cast<unsigned int>(std::atoi(*argv));
             }
             else if ((strcmp(*argv, "-b") == 0) && (argc > 1))
             {
@@ -132,13 +132,13 @@ int main(int argc, char* argv[])
             {
                 argv++;
                 argc--;
-                max_charge_point_current = std::atoi(*argv);
+                max_charge_point_current = static_cast<unsigned int>(std::atoi(*argv));
             }
             else if ((strcmp(*argv, "-i") == 0) && (argc > 1))
             {
                 argv++;
                 argc--;
-                max_connector_current = std::atoi(*argv);
+                max_connector_current = static_cast<unsigned int>(std::atoi(*argv));
             }
             else
             {
@@ -175,12 +175,12 @@ int main(int argc, char* argv[])
     // Open configuration file
     std::filesystem::path path(working_dir);
     path /= "config.ini";
-    SimulatedChargePointConfig config(working_dir, path);
+    SimulatedChargePointConfig config(working_dir, path.string());
 
     // Update configuration file
     std::filesystem::path db_path(working_dir);
     db_path /= "ocpp.db";
-    config.setStackConfigValue("DatabasePath", db_path);
+    config.setStackConfigValue("DatabasePath", db_path.string());
     config.setStackConfigValue("ConnexionUrl", connection_url);
     config.setStackConfigValue("ChargePointIdentifier", chargepoint_id);
     config.setStackConfigValue("ChargePointSerialNumber", serial_number);

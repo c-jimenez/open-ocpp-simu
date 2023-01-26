@@ -11,7 +11,11 @@ include(CMakeLists_Options.txt)
 
 # Target toolchain definition and specific compiler flags
 if(NOT DEFINED TARGET)
-    set(TARGET native)
+    if (NOT MSVC)
+        set(TARGET "gcc")
+    else()
+        set(TARGET "msvc")
+    endif()
 endif()
 include(CMakeLists_${TARGET}.txt)
 
@@ -19,11 +23,29 @@ include(CMakeLists_${TARGET}.txt)
 add_subdirectory(3rdparty)
 
 # Paho MQTT is mandatory
-find_package(eclipse-paho-mqtt-c REQUIRED)
+if(NOT MSVC)
+    find_package(eclipse-paho-mqtt-c REQUIRED)
+else()
+    include_directories(3rdparty/eclipse-paho-mqtt-c/include)
+    link_directories(3rdparty/eclipse-paho-mqtt-c/lib)
+
+    find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
+endif()
 
 # Open OCPP is mandatory
-find_package(PkgConfig)
-pkg_search_module(PKG_OPEN_OCPP REQUIRED IMPORTED_TARGET libopen-ocpp)
+if(NOT MSVC)
+    find_package(PkgConfig)
+    pkg_search_module(PKG_OPEN_OCPP REQUIRED IMPORTED_TARGET libopen-ocpp)
+    set(OPENOCPP_LIB PkgConfig::PKG_OPEN_OCPP)
+else()
+    set(OPENOCPP_INCLUDE_DIR $ENV{OPENOCPP_INCLUDE_DIR})
+    set(OPENOCPP_LIB_DIR $ENV{OPENOCPP_INCLUDE_DIR})
+    message("OPENOCPP_INCLUDE_DIR : ${OPENOCPP_INCLUDE_DIR}")
+    message("OPENOCPP_LIB_DIR : ${OPENOCPP_LIB_DIR}")
+    include_directories(${OPENOCPP_INCLUDE_DIR})
+    link_directories($ENV{OPENOCPP_LIB_DIR})
+    set(OPENOCPP_LIB open-ocpp_static.lib)
+endif()
 
 
 # Default output directories

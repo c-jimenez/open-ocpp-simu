@@ -26,10 +26,11 @@ SOFTWARE.
 #define COMMANDHANDLER_H
 
 #include "IMqttClient.h"
-#include "json.h"
 
+#include <openocpp/json.h>
 #include <filesystem>
 #include <map>
+#include <cstdint>
 
 /** @brief Handler for incoming MQTT events */
 class CommandHandler : public IMqttClient::IListener
@@ -66,7 +67,7 @@ class CommandHandler : public IMqttClient::IListener
     /** @brief Simulated charge points' statuses */
     std::map<std::string, bool> m_cp_status;
     /** @brief Simulated charge points' pids */
-    std::map<std::string, int> m_cp_pids;
+    std::map<std::string, uint64_t> m_cp_pids;
 };
 
 #endif // COMMANDHANDLER_H

@@ -25,12 +25,16 @@ SOFTWARE.
 #include "CommandHandler.h"
 #include "Topics.h"
 
-#include <IniFile.h>
+#include <openocpp/IniFile.h>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <signal.h>
 #include <sstream>
+
+#ifdef _MSC_VER
+#include <Windows.h>
+#endif // _MSC_VER
 
 /** @brief Constructor */
 CommandHandler::CommandHandler(const std::string broker_url, std::filesystem::path chargepoints_dir)
@@ -132,11 +136,11 @@ void CommandHandler::mqttMessageReceived(const char* topic, const std::string& m
             // Charge point's status
 
             // Extract name
-            std::filesystem::path topic_path(topic);
-            auto                  iter = topic_path.end();
+            std::filesystem::path status_topic_path(topic);
+            auto                  iter = status_topic_path.end();
             iter--;
             iter--;
-            std::string charge_point = *iter;
+            std::string charge_point = iter->string();
 
             // Extract status
             if (!message.empty() && payload.HasMember("status"))
@@ -145,7 +149,7 @@ void CommandHandler::mqttMessageReceived(const char* topic, const std::string& m
                 m_cp_status[charge_point] = (strcmp("Dead", payload["status"].GetString()) != 0);
                 if (m_cp_status[charge_point])
                 {
-                    m_cp_pids[charge_point] = payload["pid"].GetInt();
+                    m_cp_pids[charge_point] = payload["pid"].GetUint64();
                 }
 
                 std::cout << "[" << charge_point << "] - " << message << std::endl;
@@ -222,14 +226,16 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 }
 
                 // Update configuration
-                ocpp::helpers::IniFile config(config_path);
+                ocpp::helpers::IniFile config(config_path.string());
                 config.set("ChargePoint", "ChargePointVendor", vendor);
                 config.set("ChargePoint", "ChargePointModel", model);
-                config.set("ChargePoint", "DatabasePath", (chargepoint_dir / "ocpp.db").c_str());
+                config.set("ChargePoint", "DatabasePath", (chargepoint_dir / "ocpp.db").string().c_str());
 
                 // Build command line
                 std::stringstream cmd;
+#ifndef _MSC_VER
                 cmd << "./chargepoint";
+#endif // _MSC_VER
                 cmd << " -w \"" << chargepoint_dir << "\"";
                 cmd << " -t " << central_system;
                 cmd << " -c \"" << id << "\"";
@@ -239,10 +245,34 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 cmd << " -b " << m_broker_url;
                 cmd << " -m " << max_current;
                 cmd << " -i " << max_current_per_connector;
+#ifndef _MSC_VER
                 cmd << " &" << std::endl;
+#endif // _MSC_VER
 
                 // Start charge point
+#ifndef _MSC_VER
                 system(cmd.str().c_str());
+#else // _MSC_VER
+                STARTUPINFO         si;
+                PROCESS_INFORMATION pi;
+
+                ZeroMemory(&si, sizeof(si));
+                si.cb = sizeof(si);
+                ZeroMemory(&pi, sizeof(pi));
+
+                CreateProcess("chargepoint.exe",
+                              const_cast<char*>(cmd.str().c_str()),
+                              nullptr,
+                              nullptr,
+                              FALSE,
+                              NORMAL_PRIORITY_CLASS,
+                              nullptr,
+                              nullptr,
+                              &si,
+                              &pi);
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+#endif // _MSC_VER
                 total_started++;
             }
         }
@@ -270,12 +300,24 @@ bool CommandHandler::killChargePoints(const rapidjson::Value& charge_points)
             if ((iter_cp != m_cp_pids.end()) && m_cp_status[id])
             {
                 // Kill charge point
-                int pid = iter_cp->second;
+                uint64_t pid = iter_cp->second;
+#ifdef _MSC_VER
+                HANDLE chargepoint_proc = OpenProcess(PROCESS_TERMINATE, FALSE, static_cast<DWORD>(pid));
+                if (chargepoint_proc != nullptr)
+                {
+                    if (TerminateProcess(chargepoint_proc, 0) != 0)
+                    {
+                        total_killed++;
+                    }
+                    CloseHandle(chargepoint_proc);
+                }
+#else // _MSC_VER
                 int err = kill(pid, SIGKILL);
                 if (err == 0)
                 {
                     total_killed++;
                 }
+#endif // _MSC_VER
             }
         }
         total_count++;

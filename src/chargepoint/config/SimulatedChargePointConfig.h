@@ -29,7 +29,7 @@ SOFTWARE.
 #include "MqttConfig.h"
 #include "OcppConfig.h"
 
-#include <IniFile.h>
+#include <openocpp/IniFile.h>
 
 /** @brief Configuration of the simulated charge point */
 class SimulatedChargePointConfig
