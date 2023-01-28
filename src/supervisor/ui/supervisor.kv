@@ -1,0 +1,211 @@
+#:kivy 1.0
+
+# MIT License
+
+# Copyright (c) 2022 Cedric Jimenez
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+#:include ui/chargepoint.kv
+#:include ui/connector.kv
+#:include ui/selectablelabel.kv
+#:include ui/newchargepoint.kv
+#:include ui/filedialog.kv
+
+SupervisorScreen:
+    orientation: 'vertical'
+    size_hint: 1., 1.
+
+    lbl_mqtt_status: lbl_mqtt_status
+    lbl_launcher_status: lbl_launcher_status
+
+    ti_broker_url: ti_broker_url
+
+    bt_connect: bt_connect
+    bt_add_cp: bt_add_cp
+    bt_remove_cp: bt_remove_cp
+    bt_kill_restart_cp: bt_kill_restart_cp
+    
+    rv_chargers: rv_chargers
+
+    stk_connectors: stk_connectors
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: 1., None
+        size: 0, 40
+
+        Label:
+            text: 'MQTT broker URL : '
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 130, 0
+
+        TextInput:
+            id: ti_broker_url
+            text: 'tcp://localhost:1883'
+            size_hint: 1., 1.
+            size: 0,10
+            multiline: False
+            background_color: (0.25, 0.25, 0.25, 1) if self.readonly else (1, 1, 1, 1)
+            readonly: bt_connect.connected
+
+        Button:
+            id: bt_connect
+            text: 'Connect!' if not self.connected else 'Disconnect!'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+
+            connected: False
+
+            on_release: root.bt_connect_click()
+
+        BackgroundLabel:
+            id: lbl_mqtt_status
+            text: 'MQTT'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 50, 0
+            bold: True
+            state: "Idle"
+            color: (0, 0, 0, 1)
+            background_color: (0, 0, 0, 1) if self.state == "Idle" else (0, 1, 0, 1) if self.state == "Ok" else (1, 0, 0, 1)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: 1., 1.
+
+        RecycleView:
+            id: rv_chargers
+            viewclass: 'SelectableLabel'
+            size_hint: None, 1.
+            size: 400, 0
+            selected_index: -1
+            selected_item: None
+
+            SelectableRecycleBoxLayout:
+                orientation: 'vertical'
+                default_size: 0, 40
+                default_size_hint: 1., None
+                size_hint: 1., None
+                height: self.minimum_height
+                padding: 5
+                spacing: 5
+
+        StackLayout:
+            id: stk_connectors
+            orientation: 'lr-tb'
+            padding: 5
+            spacing: 5
+            size_hint: 1., 1.   
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: 1., None
+        size: 0, 40
+
+        Label:
+            text: 'Number of CP : ' + str(len(rv_chargers.data))
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 170, 0
+
+        Button:
+            id: bt_add_cp
+            text: 'Add CP'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 100, 0
+            
+            disabled: not bt_connect.connected or not lbl_launcher_status.alive
+            on_release: root.bt_add_cp_click()
+
+        Button:
+            id: bt_remove_cp
+            text: 'Remove CP'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 100, 0
+
+            disabled: not bt_connect.connected or not lbl_launcher_status.alive
+            on_release: root.bt_remove_cp_click()
+
+        Button:
+            id: bt_kill_restart_cp
+            text: 'Kill CP' if self.kill else 'Restart CP'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 100, 0
+
+            kill: True
+            active: False
+
+            disabled: not self.active or not bt_connect.connected or not lbl_launcher_status.alive
+            on_release: root.bt_kill_restart_cp_click()
+
+        Button:
+            id: bt_save_setup
+            text: 'Save setup'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 100, 0
+
+            disabled: not bt_connect.connected or not lbl_launcher_status.alive
+            on_release: root.bt_save_setup_click()
+
+        Button:
+            id: bt_load_setup
+            text: 'Load setup'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 100, 0
+
+            disabled: not bt_connect.connected or not lbl_launcher_status.alive
+            on_release: root.bt_load_setup_click()
+
+        BackgroundLabel:
+            id: lbl_launcher_status
+            text: 'LAUNCHER'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 80, 0
+            bold: True
+            alive: False
+            color: (0, 0, 0, 1)
+            background_color: (0, 0, 0, 1) if not bt_connect.connected else (0, 1, 0, 1) if self.alive else (1, 0, 0, 1)

@@ -1,0 +1,3 @@
+add_subdirectory(chargepoint)
+add_subdirectory(launcher)
+add_subdirectory(mqtt_client)

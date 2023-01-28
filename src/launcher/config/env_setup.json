@@ -1,0 +1,224 @@
+{
+    "charge_points": [
+        {
+            "id": "Simulated_CP_001",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_001",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_002",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_002",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_003",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_003",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_004",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_004",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_005",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_004",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_006",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_006",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_007",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_007",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_008",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_008",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_009",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_009",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_010",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_010",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_011",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_001",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_012",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_002",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_013",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_003",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_014",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_004",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_015",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_004",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_016",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_006",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_017",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_007",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_018",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_008",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_019",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_009",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 1,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        },
+        {
+            "id": "Simulated_CP_020",
+            "vendor": "Open OCPP",
+            "model": "Open OCPP simulated CP",
+            "serial": "CP_010",
+            "central_system": "ws://127.0.0.1:8080/openocpp/",
+            "nb_connectors": 1,
+            "nb_phases": 3,
+            "max_current": 32,
+            "max_current_per_connector": 32
+        }
+    ]
+}
