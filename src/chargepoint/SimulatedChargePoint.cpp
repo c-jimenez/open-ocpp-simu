@@ -27,6 +27,7 @@ SOFTWARE.
 #include "MeterSimulator.h"
 #include "MqttManager.h"
 #include "SimulatedChargePointConfig.h"
+#include "Version.h"
 
 #include <cmath>
 #include <iostream>
@@ -53,7 +54,8 @@ SimulatedChargePoint::~SimulatedChargePoint() { }
 /** @brief Start the Charge Point (blocking) */
 void SimulatedChargePoint::start()
 {
-    std::cout << "Starting simulated charge point : " << m_config.stackConfig().chargePointIdentifier() << std::endl;
+    std::cout << "Starting simulated charge point v" << CHARGEPOINT_FW_VERSION << " : " << m_config.stackConfig().chargePointIdentifier()
+              << std::endl;
 
     // MQTT connectivity
     std::cout << "Starting MQTT connectivity..." << std::endl;
@@ -664,7 +666,7 @@ void SimulatedChargePoint::computeCurrentConsumption(ConnectorData& connector)
             case 1:
                 consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
                 break;
-            
+
             case 2:
                 consumption_l1 = std::min(connector.car_consumption_l1, connector.setpoint);
                 consumption_l2 = std::min(connector.car_consumption_l2, connector.setpoint);

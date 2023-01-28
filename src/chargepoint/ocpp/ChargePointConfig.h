@@ -25,6 +25,8 @@ SOFTWARE.
 #ifndef CHARGEPOINTCONFIG_H
 #define CHARGEPOINTCONFIG_H
 
+#include "Version.h"
+
 #include <openocpp/IChargePointConfig.h>
 #include <openocpp/IniFile.h>
 
@@ -96,7 +98,7 @@ class ChargePointConfig : public ocpp::config::IChargePointConfig
     /** @brief Charge point vendor */
     std::string chargePointVendor() const override { return getString("ChargePointVendor"); }
     /** @brief Firmware version */
-    std::string firmwareVersion() const override { return getString("FirmwareVersion"); }
+    std::string firmwareVersion() const override { return CHARGEPOINT_FW_VERSION; }
     /** @brief ICCID of the moden's SIM card */
     std::string iccid() const override { return getString("Iccid"); }
     /** @brief IMSI of the moden's SIM card */
