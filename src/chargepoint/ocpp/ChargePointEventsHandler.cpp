@@ -360,7 +360,21 @@ std::string ChargePointEventsHandler::getDiagnostics(const ocpp::types::Optional
     std::string diag_file = "/tmp/diag.zip";
 
     std::stringstream ss;
-    ss << "zip " << diag_file << " " << m_config.stackConfig().databasePath();
+    ss << "zip " << diag_file;
+
+    for (auto filename : m_config.diagFiles()) {
+        std::string filepath = filename;
+        if (filepath[0] != '/') {
+            filepath = m_config.workingDir() + "/" + filepath;
+        }
+        if (std::filesystem::exists(filepath))
+        {
+            ss << " " << filepath;
+        } else {
+             cout << "Impossible to add file " << filepath << " in diagnostic zip: not found" << endl;
+        }
+    }
+
     int err = WEXITSTATUS(system(ss.str().c_str()));
     cout << "Command line : " << ss.str() << " => " << err << endl;
 
