@@ -349,3 +349,16 @@ The expected command payload is :
     "faulted": false
  }
  ```
+
+
+Each simulated Charge Point are listening to the following topic to execute a certain command: **cp_simu/cps/simu_cp_XXX/cmd**.
+
+The expected command payload is :
+ ```
+ {
+    "type": "<cmd>"
+ }
+ ```
+So for there are 2 commands:
+* close: ask to end the application
+* ocpp_config: ask to send on MQTT topic **cp_simu/cps/simu_cp_XXX/ocpp_config** all the OCPP config of the Charge Point

@@ -77,6 +77,9 @@ class MqttManager : public IMqttClient::IListener
     /** @brief Publish the data of the connectors */
     void publishData(const std::vector<ConnectorData>& connectors);
 
+    /** @brief Publish the ocpp config of the charge point */
+    void publishOcppConfig();
+
   private:
     /** @brief Configuration */
     SimulatedChargePointConfig& m_config;
@@ -92,6 +95,8 @@ class MqttManager : public IMqttClient::IListener
     IMqttClient* m_mqtt;
     /** @brief Status topic */
     std::string m_status_topic;
+    /** @brief Config topic */
+    std::string m_ocpp_config_topic;
     /** @brief Connectors topic */
     std::string m_connectors_topic;
 
