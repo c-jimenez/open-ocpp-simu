@@ -359,6 +359,6 @@ The expected command payload is :
     "type": "<cmd>"
  }
  ```
-So for there are 2 commands:
+So far there are 2 commands:
 * close: ask to end the application
 * ocpp_config: ask to send on MQTT topic **cp_simu/cps/simu_cp_XXX/ocpp_config** all the OCPP config of the Charge Point
