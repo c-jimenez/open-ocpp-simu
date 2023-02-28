@@ -371,7 +371,7 @@ std::string ChargePointEventsHandler::getDiagnostics(const ocpp::types::Optional
         {
             ss << " " << filepath;
         } else {
-             cout << "Impossible to add file " << filepath << " in diagnostic zip: not found" << endl;
+             cout << "Unable to add file " << filepath << " in diagnostic zip: not found" << endl;
         }
     }
 
