@@ -23,14 +23,14 @@ SOFTWARE.
 */
 
 #include "MqttManager.h"
+#include "MeterSimulator.h"
 #include "SimulatedChargePointConfig.h"
 #include "Topics.h"
-#include "MeterSimulator.h"
 
-#include <openocpp/json.h>
 #include <cstring>
 #include <filesystem>
 #include <iostream>
+#include <openocpp/json.h>
 #include <sstream>
 #include <thread>
 
@@ -230,8 +230,10 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
             std::cout << "Subscribing to charge point's command topic: " << chargepoint_cmd_topic << std::endl;
             if (m_mqtt->subscribe(chargepoint_cmd_topic))
             {
-                std::cout << "Subscribing to charge point's connector topics: " << chargepoint_car_topics << " and " << chargepoint_tag_topics << " and " << chargepoint_faulted_topics << std::endl;
-                if (m_mqtt->subscribe(chargepoint_car_topics) && m_mqtt->subscribe(chargepoint_tag_topics) && m_mqtt->subscribe(chargepoint_faulted_topics))
+                std::cout << "Subscribing to charge point's connector topics: " << chargepoint_car_topics << " and "
+                          << chargepoint_tag_topics << " and " << chargepoint_faulted_topics << std::endl;
+                if (m_mqtt->subscribe(chargepoint_car_topics) && m_mqtt->subscribe(chargepoint_tag_topics) &&
+                    m_mqtt->subscribe(chargepoint_faulted_topics))
                 {
                     // Wait for disconnection or end of application
                     std::cout << "Ready!" << std::endl;
@@ -343,14 +345,14 @@ void MqttManager::publishOcppConfig()
 
         // Get vector of key/value for ocpp config
         std::vector<ocpp::types::CiStringType<50u>> keys;
-        std::vector<ocpp::types::KeyValue> values;
+        std::vector<ocpp::types::KeyValue>          values;
         std::vector<ocpp::types::CiStringType<50u>> unknown_values;
         m_config.ocppConfig().getConfiguration(keys, values, unknown_values);
 
         // Create the JSON message
         rapidjson::Document msg;
         msg.Parse("{}");
-        for (const ocpp::types::KeyValue keyValue : values)
+        for (const ocpp::types::KeyValue& keyValue : values)
         {
             if (!keyValue.value.value().empty())
             {
@@ -400,9 +402,9 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
             msg.AddMember(rapidjson::StringRef("car_ready"), rapidjson::Value(connector.car_ready), msg.GetAllocator());
 
             static const char* consumption_str[] = {"consumption_l1", "consumption_l2", "consumption_l3"};
-            std::vector<float> currents = connector.meter->getCurrents();
-            unsigned int nb_phases = connector.meter->getNumberOfPhases();
-            for (unsigned int i = 0; i < 3 ; i++)
+            std::vector<float> currents          = connector.meter->getCurrents();
+            unsigned int       nb_phases         = connector.meter->getNumberOfPhases();
+            for (unsigned int i = 0; i < 3; i++)
             {
                 if (i < nb_phases)
                 {
@@ -431,7 +433,7 @@ std::string MqttManager::buildStatusMessage(const char* status, unsigned int nb_
     msg.Parse("{}");
 #ifdef _MSC_VER
     msg.AddMember(rapidjson::StringRef("pid"), rapidjson::Value(static_cast<uint64_t>(GetCurrentProcessId())), msg.GetAllocator());
-#else // _MSC_VER
+#else  // _MSC_VER
     msg.AddMember(rapidjson::StringRef("pid"), rapidjson::Value(getpid()), msg.GetAllocator());
 #endif // _MSC_VER
     msg.AddMember(rapidjson::StringRef("status"), rapidjson::Value(status, msg.GetAllocator()).Move(), msg.GetAllocator());

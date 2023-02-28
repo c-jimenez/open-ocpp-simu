@@ -38,8 +38,12 @@ class SimulatedChargePointConfig
   public:
     /** @brief Constructor */
     SimulatedChargePointConfig(const std::string& working_dir, const std::string& config_file, std::set<std::string>& diag_files)
-        : m_working_dir(working_dir), m_config(config_file), m_stack_config(m_config), m_ocpp_config(m_config), m_mqtt_config(m_config),
-          m_diag_files(diag_files)
+        : m_working_dir(working_dir),
+          m_config(config_file),
+          m_diag_files(diag_files),
+          m_stack_config(m_config),
+          m_ocpp_config(m_config),
+          m_mqtt_config(m_config)
     {
     }
 

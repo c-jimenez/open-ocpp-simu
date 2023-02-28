@@ -186,6 +186,7 @@ cp_simu
  |   |-status
  |--cps
  |   |-simu_cp_XXX
+ |   |  |-cmd
  |   |  |-status
  |   |  |-connectors
  |   |  |  |-1
@@ -197,6 +198,7 @@ cp_simu
  |   |  |  | |-id_tag
  |   |  |  | |-status
  |   |-simu_cp_YYY
+ |   |  |-cmd
  |   |  |-status
  |   |  |-connectors
  |   |  |  |-1
