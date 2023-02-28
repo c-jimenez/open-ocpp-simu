@@ -33,6 +33,7 @@ SOFTWARE.
 #include <iostream>
 #include <string.h>
 #include <thread>
+#include <set>
 
 using namespace std;
 
@@ -73,6 +74,7 @@ int main(int argc, char* argv[])
     std::string  mqtt_broker_url          = "tcp://localhost:1883";
     unsigned int max_charge_point_current = 32u;
     unsigned int max_connector_current    = 32u;
+    std::set<std::string> diag_files     = {"ocpp.db"};
 
     // Check parameters
     if (argc > 1)
@@ -140,6 +142,19 @@ int main(int argc, char* argv[])
                 argc--;
                 max_connector_current = static_cast<unsigned int>(std::atoi(*argv));
             }
+            else if ((strcmp(*argv, "-f") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                // add all files in diag file list:
+                diag_files.insert(*argv);
+                while((argc > 2) && (*argv[1] != '-'))
+                {
+                    argv++;
+                    argc--;
+                    diag_files.insert(*argv);
+                }
+            }
             else
             {
                 param     = *argv;
@@ -168,6 +183,8 @@ int main(int argc, char* argv[])
             std::cout << "    -b : URL of the MQTT broker (Default = tcp://localhost:1883)" << std::endl;
             std::cout << "    -m : Max current in A for the whole Charge Point (Default = 32A)" << std::endl;
             std::cout << "    -i : Max current in A for a connector of the Charge Point (Default = 32A)" << std::endl;
+            std::cout << "    -f : Files to put in diagnostic zip. Absolute path or relative path from working directory. " << std::endl;
+            std::cout <<          "Default = [ocpp.db]" << std::endl;
             return 1;
         }
     }
@@ -175,7 +192,7 @@ int main(int argc, char* argv[])
     // Open configuration file
     std::filesystem::path path(working_dir);
     path /= "config.ini";
-    SimulatedChargePointConfig config(working_dir, path.string());
+    SimulatedChargePointConfig config(working_dir, path.string(), diag_files);
 
     // Update configuration file
     std::filesystem::path db_path(working_dir);

@@ -104,11 +104,12 @@ docker-build-simu-compile:
 	@${DOCKER_BUILD}  -f docker/Dockerfile -t $(DOCKER_COMPILE_IMAGE)  $(ROOT_DIR)/docker
 
 docker-build-cp-simulator:
+	cp docker/Entrypoint/cp_simu_entrypoint.sh $(ROOT_DIR)/bin/
 	@${DOCKER_BUILD}  -f docker/Dockerfile_cp_simulator -t $(DOCKER_SIMULATOR_IMAGE)  $(ROOT_DIR)/bin/
 
 
 run-simu:
-	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-simu $(DOCKER_SIMULATOR_IMAGE) -c test_ocpp
+	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-simu $(DOCKER_SIMULATOR_IMAGE)
 	
 run-launcher:
 	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-launcher --entrypoint /cp_simulator/launcher $(DOCKER_SIMULATOR_IMAGE)
