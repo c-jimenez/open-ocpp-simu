@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
                 argc--;
                 max_connector_current = static_cast<unsigned int>(std::atoi(*argv));
             }
-            else if ((strcmp(*argv, "--diag_files") == 0) && (argc > 1))
+            else if ((strcmp(*argv, "-f") == 0) && (argc > 1))
             {
                 argv++;
                 argc--;
