@@ -99,6 +99,10 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
                     std::cout << "Close command received" << std::endl;
                     m_end = true;
                 }
+                else if (strcmp(type, "ocpp_config") == 0)
+                {
+                    publishOcppConfig();
+                }
             }
             else
             {
@@ -205,6 +209,7 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
     std::string chargepoint_tag_topics     = chargepoint_topic + "connectors/+/id_tag";
     std::string chargepoint_faulted_topics = chargepoint_topic + "connectors/+/faulted";
     m_status_topic                         = chargepoint_topic + "status";
+    m_ocpp_config_topic                    = chargepoint_topic + "ocpp_config";
     m_connectors_topic                     = chargepoint_topic + "connectors/";
 
     // MQTT client
@@ -324,6 +329,43 @@ bool MqttManager::publishStatus(const std::string& status, unsigned int nb_phase
     }
 
     return ret;
+}
+
+/** @brief Publish the ocpp config of the connectors */
+void MqttManager::publishOcppConfig()
+{
+    // Check connectivity
+    if (m_mqtt->isConnected())
+    {
+        // Compute topic name
+        std::stringstream topic;
+        topic << m_ocpp_config_topic;
+
+        // Get vector of key/value for ocpp config
+        std::vector<ocpp::types::CiStringType<50u>> keys;
+        std::vector<ocpp::types::KeyValue> values;
+        std::vector<ocpp::types::CiStringType<50u>> unknown_values;
+        m_config.ocppConfig().getConfiguration(keys, values, unknown_values);
+
+        // Create the JSON message
+        rapidjson::Document msg;
+        msg.Parse("{}");
+        for (const ocpp::types::KeyValue keyValue : values)
+        {
+            if (!keyValue.value.value().empty())
+            {
+                rapidjson::Value key(keyValue.key.c_str(), msg.GetAllocator());
+                rapidjson::Value value(keyValue.value.value().c_str(), msg.GetAllocator());
+                msg.AddMember(key, value, msg.GetAllocator());
+            }
+        }
+        rapidjson::StringBuffer                    buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        msg.Accept(writer);
+
+        // Publish
+        m_mqtt->publish(topic.str(), buffer.GetString(), IMqttClient::QoS::QOS_0, true);
+    }
 }
 
 /** @brief Publish the data of the connectors */
