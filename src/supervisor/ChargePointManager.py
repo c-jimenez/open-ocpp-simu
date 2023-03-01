@@ -192,6 +192,21 @@ class ChargePointManager(object):
         """ Send the command to remove the simulated charge point """
         ret = self.__remove_charge_points([{"id": cp_id}])
 
+    def restart_all_charge_points(self) -> bool:
+        """ send restart command to all simulated charge points """
+        ret = True
+
+        for cp_id in self.__cps.keys():
+            ret = ret and self.restart_charge_point(cp_id)
+
+        return ret
+
+    def kill_all_charge_points(self):
+        """ send kill command to all simulated charge points """
+        cp_ids = self.__cps.keys()
+        for cp_id in cp_ids:
+            self.kill_charge_point(cp_id)
+
     def restart_charge_point(self, cp_id: str) -> bool:
         """ Send the command to restart the simulated charge point """
 

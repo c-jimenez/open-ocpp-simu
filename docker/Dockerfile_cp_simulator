@@ -14,9 +14,10 @@ COPY gcc_native/config.ini /var/chargepoint/config.ini
 RUN chown ${simu_uid}:${simu_gid} /var/chargepoint/config.ini
 
 COPY gcc_native  /cp_simulator
+COPY cp_simu_entrypoint.sh /cp_simu_entrypoint.sh
 
 USER cp_simu
 
 WORKDIR "/var/chargepoint"
 
-ENTRYPOINT  ["/cp_simulator/chargepoint"]
+ENTRYPOINT  ["/cp_simu_entrypoint.sh"]

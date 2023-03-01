@@ -30,19 +30,28 @@ SOFTWARE.
 #include "OcppConfig.h"
 
 #include <openocpp/IniFile.h>
+#include <set>
 
 /** @brief Configuration of the simulated charge point */
 class SimulatedChargePointConfig
 {
   public:
     /** @brief Constructor */
-    SimulatedChargePointConfig(const std::string& working_dir, const std::string& config_file)
-        : m_working_dir(working_dir), m_config(config_file), m_stack_config(m_config), m_ocpp_config(m_config), m_mqtt_config(m_config)
+    SimulatedChargePointConfig(const std::string& working_dir, const std::string& config_file, std::set<std::string>& diag_files)
+        : m_working_dir(working_dir),
+          m_config(config_file),
+          m_diag_files(diag_files),
+          m_stack_config(m_config),
+          m_ocpp_config(m_config),
+          m_mqtt_config(m_config)
     {
     }
 
     /** @brief Working directory */
     const std::string& workingDir() const { return m_working_dir; }
+
+    /** @brief files to put diagnostic zip */
+    const std::set<std::string>& diagFiles() const { return m_diag_files; }
 
     /** @brief Stack internal configuration */
     ocpp::config::IChargePointConfig& stackConfig() { return m_stack_config; }
@@ -67,6 +76,8 @@ class SimulatedChargePointConfig
     std::string m_working_dir;
     /** @brief Configuration file */
     ocpp::helpers::IniFile m_config;
+    /** @brief files to put diagnostic zip */
+    std::set<std::string> m_diag_files;
 
     /** @brief Stack internal configuration */
     ChargePointConfig m_stack_config;
