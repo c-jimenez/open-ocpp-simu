@@ -84,14 +84,24 @@ void SimulatedChargePoint::start()
     }
     event_handler.setConnectors(connectors);
 
-    // Start OCPP
-    charge_point->start();
+    do
+    {
+        // Start OCPP
+        std::cout << "Start do/while OCPP" << std::endl;
+        event_handler.setReset(false);
+        std::cout << "Start CP" << std::endl;
+        charge_point->start();
 
-    // Control loop
-    loop(mqtt, *charge_point.get(), event_handler, connectors);
+        // Control loop
+        std::cout << "Start loop OCPP" << std::endl;
+        loop(mqtt, *charge_point.get(), event_handler, connectors);
 
-    // Stop OCPP
-    charge_point->stop();
+        // Stop OCPP
+        std::cout << "Stop CP" << std::endl;
+        charge_point->stop();
+    }
+    while(event_handler.getReset());
+
     for (MeterSimulator*& meter : meters)
     {
         meter->stop();
@@ -472,7 +482,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
 
         // Polling period
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    } while (!mqtt.isEndOfApplication());
+    } while (!mqtt.isEndOfApplication() && !event_handler.getReset());
 }
 
 /** @brief Check if a valid id tag has been presented (locally or remotely) */

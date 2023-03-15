@@ -51,7 +51,8 @@ ChargePointEventsHandler::ChargePointEventsHandler(SimulatedChargePointConfig& c
       m_remote_start_pending(config.ocppConfig().numberOfConnectors()),
       m_remote_stop_pending(m_remote_start_pending.size()),
       m_remote_start_id_tag(m_remote_start_pending.size()),
-      m_is_connected(false)
+      m_is_connected(false),
+      m_reset(false)
 {
     for (unsigned int i = 0; i < m_remote_start_pending.size(); i++)
     {
@@ -338,6 +339,9 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
 bool ChargePointEventsHandler::resetRequested(ocpp::types::ResetType reset_type)
 {
     cout << "Reset requested : " << ResetTypeHelper.toString(reset_type) << endl;
+    std::cout << "RESET : " << m_reset << std::endl;
+    m_reset = true;
+    std::cout << "RESET : " << m_reset << std::endl;
     return true;
 }
 

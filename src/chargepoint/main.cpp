@@ -220,35 +220,5 @@ int main(int argc, char* argv[])
     SimulatedChargePoint chargepoint(config, max_charge_point_current, max_connector_current, nb_phases);
     chargepoint.start();
 
-    Listener listener;
-
-    client = IMqttClient::create(chargepoint_id);
-
-    client->registerListener(listener);
-    client->setWill("/ocpp/simu/chargepoints/disconnect", "I'm dead!");
-
-    if (client->connect(mqtt_broker_url))
-    {
-        cout << "Connected!" << endl;
-
-        client->publish("/ocpp/simu/chargepoints/status", "up 1!", IMqttClient::QoS::QOS_0, true);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    }
-
-    client->close();
-
-    // Event handler
-    ChargePointEventsHandler event_handler(config);
-
-    // Instanciate charge point
-    std::unique_ptr<ocpp::chargepoint::IChargePoint> charge_point =
-        ocpp::chargepoint::IChargePoint::create(config.stackConfig(), config.ocppConfig(), event_handler);
-
-    event_handler.setChargePoint(*charge_point.get());
-    charge_point->start();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(30000));
-
     return 0;
 }
