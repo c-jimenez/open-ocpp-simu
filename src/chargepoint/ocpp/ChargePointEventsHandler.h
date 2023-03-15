@@ -27,10 +27,10 @@ SOFTWARE.
 
 #include "ConnectorData.h"
 
-#include <openocpp/IChargePoint.h>
-#include <openocpp/IChargePointEventsHandler.h>
 #include <filesystem>
 #include <iostream>
+#include <openocpp/IChargePoint.h>
+#include <openocpp/IChargePointEventsHandler.h>
 #include <vector>
 
 class SimulatedChargePointConfig;
@@ -229,18 +229,11 @@ class ChargePointEventsHandler : public ocpp::chargepoint::IChargePointEventsHan
     /** @brief Indicate if the charge point is connected to the central system */
     bool isConnected() const { return m_is_connected; }
 
-    /** @brief Indicate if the charge point is connected to the central system */
-    void setReset(bool reset) {
-      std::cout << "SET RESET : " << m_reset << std::endl;
-      m_reset = reset;
-      std::cout << "SET RESET : " << m_reset << std::endl;
-    }
+    /** @brief Clear the reset pending flag */
+    void clearResetPending() { m_reset_pending = false; }
 
-    /** @brief Indicate if the charge point is connected to the central system */
-    bool getReset() { 
-      std::cout << "GET RESET : " << m_reset << std::endl;
-      return m_reset;
-    }
+    /** @brief Indicate if the a charge point reset request is pending */
+    bool isResetPending() { return m_reset_pending; }
 
   protected:
     /** @brief Get the configuration */
@@ -264,7 +257,7 @@ class ChargePointEventsHandler : public ocpp::chargepoint::IChargePointEventsHan
     /** @brief Connection status */
     bool m_is_connected;
     /** @brief Flag to know if the Charge Point has to be reset */
-    bool m_reset;
+    bool m_reset_pending;
 
     /** @brief Get the number of installed CA certificates */
     unsigned int getNumberOfCaCertificateInstalled(bool manufacturer, bool central_system, bool iso15118);
