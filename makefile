@@ -109,7 +109,7 @@ docker-build-cp-simulator:
 
 
 run-simu:
-	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-simu $(DOCKER_SIMULATOR_IMAGE)
+	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --cap-add NET_ADMIN --name ocpp-simu $(DOCKER_SIMULATOR_IMAGE)
 	
 run-launcher:
 	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-launcher --entrypoint /cp_simulator/launcher $(DOCKER_SIMULATOR_IMAGE)
