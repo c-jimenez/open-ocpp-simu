@@ -96,7 +96,7 @@ $(CLANG_NATIVE_BUILD_DIR)/Makefile:
 	@${DOCKER_RUN} eval "cd $(CLANG_NATIVE_BUILD_DIR) && CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=$(BUILD_TYPE) -D _CMAKE_TOOLCHAIN_PREFIX=llvm- -D BIN_DIR=$(CLANG_NATIVE_BIN_DIR) $(CMAKE_INSTALL_PREFIX) $(ROOT_DIR)"
 
 
-DOCKER_BUILD=docker build --build-arg http_proxy="${http_proxy}" --build-arg https_proxy="${https_proxy}" --build-arg no_proxy="${no_proxy}" --build-arg uid=$$(id -u) --build-arg gid=$$(id -g)
+DOCKER_BUILD=docker build --no-cache --build-arg http_proxy="${http_proxy}" --build-arg https_proxy="${https_proxy}" --build-arg no_proxy="${no_proxy}" --build-arg uid=$$(id -u) --build-arg gid=$$(id -g)
 DOCKER_SIMULATOR_IMAGE=open-ocpp-cp-simulator
 docker-build-images: docker-build-simu-compile docker-build-cp-simulator
 
@@ -109,7 +109,7 @@ docker-build-cp-simulator:
 
 
 run-simu:
-	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-simu $(DOCKER_SIMULATOR_IMAGE)
+	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --cap-add NET_ADMIN --name ocpp-simu $(DOCKER_SIMULATOR_IMAGE)
 	
 run-launcher:
 	docker run $(DOCKER_INTERACTIVE) --rm  --network=host --name ocpp-launcher --entrypoint /cp_simulator/launcher $(DOCKER_SIMULATOR_IMAGE)
