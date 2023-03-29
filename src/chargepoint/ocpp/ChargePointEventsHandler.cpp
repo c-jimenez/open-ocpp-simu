@@ -26,12 +26,12 @@ SOFTWARE.
 #include "MeterSimulator.h"
 #include "SimulatedChargePointConfig.h"
 
+#include <fstream>
+#include <iostream>
 #include <openocpp/CertificateRequest.h>
 #include <openocpp/PrivateKey.h>
 #include <openocpp/Sha2.h>
 #include <openocpp/StringHelpers.h>
-#include <fstream>
-#include <iostream>
 
 // With MSVC compiler, the system() call returns directly the command's return value
 #ifdef _MSC_VER
@@ -51,7 +51,8 @@ ChargePointEventsHandler::ChargePointEventsHandler(SimulatedChargePointConfig& c
       m_remote_start_pending(config.ocppConfig().numberOfConnectors()),
       m_remote_stop_pending(m_remote_start_pending.size()),
       m_remote_start_id_tag(m_remote_start_pending.size()),
-      m_is_connected(false)
+      m_is_connected(false),
+      m_reset_pending(false)
 {
     for (unsigned int i = 0; i < m_remote_start_pending.size(); i++)
     {
@@ -338,6 +339,7 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
 bool ChargePointEventsHandler::resetRequested(ocpp::types::ResetType reset_type)
 {
     cout << "Reset requested : " << ResetTypeHelper.toString(reset_type) << endl;
+    m_reset_pending = true;
     return true;
 }
 
@@ -362,16 +364,20 @@ std::string ChargePointEventsHandler::getDiagnostics(const ocpp::types::Optional
     std::stringstream ss;
     ss << "zip " << diag_file;
 
-    for (auto filename : m_config.diagFiles()) {
+    for (auto filename : m_config.diagFiles())
+    {
         std::string filepath = filename;
-        if (filepath[0] != '/' && !m_config.workingDir().empty()) {
+        if (filepath[0] != '/' && !m_config.workingDir().empty()) 
+        {
             filepath = m_config.workingDir() + "/" + filepath;
         }
         if (std::filesystem::exists(filepath))
         {
             ss << " " << filepath;
-        } else {
-             cout << "Unable to add file " << filepath << " in diagnostic zip: not found" << endl;
+        }
+        else
+        {
+            cout << "Unable to add file " << filepath << " in diagnostic zip: not found" << endl;
         }
     }
 
