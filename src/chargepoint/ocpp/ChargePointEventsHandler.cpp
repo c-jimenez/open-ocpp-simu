@@ -367,7 +367,7 @@ std::string ChargePointEventsHandler::getDiagnostics(const ocpp::types::Optional
     for (auto filename : m_config.diagFiles())
     {
         std::string filepath = filename;
-        if (filepath[0] != '/')
+        if (filepath[0] != '/' && !m_config.workingDir().empty()) 
         {
             filepath = m_config.workingDir() + "/" + filepath;
         }
