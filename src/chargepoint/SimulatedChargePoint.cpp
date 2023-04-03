@@ -125,7 +125,8 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
     do
     {
         // Wait for registration with the Central System
-        while (!mqtt.isEndOfApplication() && (charge_point.getRegistrationStatus() != RegistrationStatus::Accepted))
+        while (!mqtt.isEndOfApplication() && !event_handler.isResetPending() &&
+               (charge_point.getRegistrationStatus() != RegistrationStatus::Accepted))
         {
             // New chargepoint status
             bool               connected = event_handler.isConnected();
