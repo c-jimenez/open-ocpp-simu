@@ -96,19 +96,22 @@ ocpp::types::AvailabilityStatus ChargePointEventsHandler::changeAvailabilityRequ
 {
     AvailabilityStatus ret = AvailabilityStatus::Accepted;
     cout << "Change availability requested : " << connector_id << " - " << AvailabilityTypeHelper.toString(availability) << endl;
-    ConnectorData& connector = m_connectors->at(connector_id - 1u);
-    if (availability == AvailabilityType::Inoperative)
+    if (connector_id > 0)
     {
-        if ((connector.status != ChargePointStatus::Available) && (connector.status != ChargePointStatus::Reserved) &&
-            (connector.status != ChargePointStatus::Faulted))
+        ConnectorData& connector = m_connectors->at(connector_id - 1u);
+        if (availability == AvailabilityType::Inoperative)
         {
-            connector.unavailable_pending = true;
-            ret                           = AvailabilityStatus::Scheduled;
+            if ((connector.status != ChargePointStatus::Available) && (connector.status != ChargePointStatus::Reserved) &&
+                (connector.status != ChargePointStatus::Faulted))
+            {
+                connector.unavailable_pending = true;
+                ret                           = AvailabilityStatus::Scheduled;
+            }
         }
-    }
-    else
-    {
-        connector.unavailable_pending = false;
+        else
+        {
+            connector.unavailable_pending = false;
+        }
     }
 
     return ret;
@@ -311,28 +314,35 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
                                                            unsigned int                   duration,
                                                            ocpp::types::ChargingSchedule& schedule)
 {
+    bool ret = false;
+
     cout << "Local limitations schedule requested : " << connector_id << " - " << duration << endl;
 
-    // Connector data
-    ConnectorData& connector_data = m_connectors->at(connector_id - 1);
-
-    // 1 period
-    // local limitation = min of connector capacity and cable plugged
-    ChargingSchedulePeriod period;
-    if ((connector_data.status >= ChargePointStatus::Charging) && (connector_data.status < ChargePointStatus::Finishing))
+    if (connector_id > 0)
     {
-        period.limit = std::min(connector_data.max_setpoint, connector_data.car_cable_capacity);
-    }
-    else
-    {
-        period.limit = connector_data.max_setpoint;
-    }
-    period.numberPhases       = connector_data.meter->getNumberOfPhases();
-    period.startPeriod        = 0;
-    schedule.chargingRateUnit = ChargingRateUnitType::A;
-    schedule.chargingSchedulePeriod.push_back(period);
+        // Connector data
+        ConnectorData& connector_data = m_connectors->at(connector_id - 1);
 
-    return true;
+        // 1 period
+        // local limitation = min of connector capacity and cable plugged
+        ChargingSchedulePeriod period;
+        if ((connector_data.status >= ChargePointStatus::Charging) && (connector_data.status < ChargePointStatus::Finishing))
+        {
+            period.limit = std::min(connector_data.max_setpoint, connector_data.car_cable_capacity);
+        }
+        else
+        {
+            period.limit = connector_data.max_setpoint;
+        }
+        period.numberPhases       = connector_data.meter->getNumberOfPhases();
+        period.startPeriod        = 0;
+        schedule.chargingRateUnit = ChargingRateUnitType::A;
+        schedule.chargingSchedulePeriod.push_back(period);
+
+        ret = true;
+    }
+
+    return ret;
 }
 
 /** @copydoc bool IChargePointEventsHandler::resetRequested(ocpp::types::ResetType) */
