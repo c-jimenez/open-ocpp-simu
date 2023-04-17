@@ -71,6 +71,8 @@ class SimulatedChargePointConfig
     /** @brief Set the value of a MQTT configuration key */
     void setMqttConfigValue(const std::string& key, const std::string& value) { m_mqtt_config.setConfigValue(key, value); }
 
+    float powerFactor() {return  m_stack_config.powerFactor();} 
+
   private:
     /** @brief Working directory */
     std::string m_working_dir;

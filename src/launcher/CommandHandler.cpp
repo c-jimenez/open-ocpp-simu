@@ -189,21 +189,23 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
     {
         // Check charge point parameters
         const rapidjson::Value& charge_point = *it_charge_point;
-        if (charge_point.HasMember("id") && charge_point.HasMember("vendor") && charge_point.HasMember("model") &&
-            charge_point.HasMember("serial") && charge_point.HasMember("max_current") && charge_point.HasMember("nb_connectors") &&
-            charge_point.HasMember("max_current_per_connector") && charge_point.HasMember("nb_phases") &&
-            charge_point.HasMember("central_system"))
+        if (charge_point.HasMember("id") && charge_point.HasMember("vendor") && charge_point.HasMember("type") && charge_point.HasMember("model") &&
+            charge_point.HasMember("serial") && charge_point.HasMember("max_setpoint") && charge_point.HasMember("nb_connectors") &&
+            charge_point.HasMember("max_setpoint_per_connector") && charge_point.HasMember("nb_phases") &&
+            charge_point.HasMember("central_system") && charge_point.HasMember("voltage"))
         {
             // Extract charge point parameters
             std::string  id                        = charge_point["id"].GetString();
+            std::string  type                      = charge_point["type"].GetString();
             std::string  vendor                    = charge_point["vendor"].GetString();
             std::string  model                     = charge_point["model"].GetString();
             std::string  serial                    = charge_point["serial"].GetString();
             std::string  central_system            = charge_point["central_system"].GetString();
             unsigned int nb_connectors             = charge_point["nb_connectors"].GetUint();
             unsigned int nb_phases                 = charge_point["nb_phases"].GetUint();
-            unsigned int max_current               = charge_point["max_current"].GetUint();
-            unsigned int max_current_per_connector = charge_point["max_current_per_connector"].GetUint();
+            unsigned int max_setpoint              = charge_point["max_setpoint"].GetUint();
+            unsigned int max_current_per_connector = charge_point["max_setpoint_per_connector"].GetUint();
+            float voltage                          = charge_point["voltage"].GetFloat();
 
             // Check if charge point is already running
             if ((m_cp_status.find(id) == m_cp_status.end()) || !m_cp_status[id])
@@ -230,6 +232,7 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 config.set("ChargePoint", "ChargePointVendor", vendor);
                 config.set("ChargePoint", "ChargePointModel", model);
                 config.set("ChargePoint", "DatabasePath", (chargepoint_dir / "ocpp.db").string().c_str());
+                config.set("ChargePoint", "OperatingVoltage", voltage);
 
                 // Build command line
                 std::stringstream cmd;
@@ -243,8 +246,9 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 cmd << " -n " << nb_connectors;
                 cmd << " -p " << nb_phases;
                 cmd << " -b " << m_broker_url;
-                cmd << " -m " << max_current;
+                cmd << " -m " << max_setpoint;
                 cmd << " -i " << max_current_per_connector;
+                cmd << " -e " << type;
 #ifndef _MSC_VER
                 cmd << " &" << std::endl;
 #endif // _MSC_VER

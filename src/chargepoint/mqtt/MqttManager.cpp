@@ -198,7 +198,7 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
 }
 
 /** @brief Start the MQTT connection process (blocking) */
-void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_current)
+void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_current, ConnectorData::Type chargepoint_type)
 {
     // Compute topics path
     std::string chargepoint_topic(CHARGE_POINTS_TOPIC);
@@ -218,7 +218,7 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
 
     // Set the will message
     m_mqtt->setWill(
-        m_status_topic, buildStatusMessage("Dead", nb_phases, static_cast<float>(max_charge_point_current)), IMqttClient::QoS::QOS_0, true);
+        m_status_topic, buildStatusMessage("Dead", nb_phases, static_cast<float>(max_charge_point_current), ConnectorData::typeToString(chargepoint_type).c_str()), IMqttClient::QoS::QOS_0, true);
 
     // Connection loop
     do
@@ -271,7 +271,7 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
         {
             // Update the status message
             m_mqtt->publish(m_status_topic,
-                            buildStatusMessage("Dead", nb_phases, static_cast<float>(max_charge_point_current)),
+                            buildStatusMessage("Dead", nb_phases, static_cast<float>(max_charge_point_current), ConnectorData::typeToString(chargepoint_type).c_str()),
                             IMqttClient::QoS::QOS_0,
                             true);
         }
@@ -319,7 +319,7 @@ void MqttManager::updateData(std::vector<ConnectorData>& connectors) const
 }
 
 /** @brief Publish the status of the charge point */
-bool MqttManager::publishStatus(const std::string& status, unsigned int nb_phases, float max_setpoint)
+bool MqttManager::publishStatus(const std::string& status, unsigned int nb_phases, float max_setpoint, ConnectorData::Type chargepoint_type)
 {
     bool ret = false;
 
@@ -327,7 +327,7 @@ bool MqttManager::publishStatus(const std::string& status, unsigned int nb_phase
     if (m_mqtt->isConnected())
     {
         // Publish
-        ret = m_mqtt->publish(m_status_topic, buildStatusMessage(status.c_str(), nb_phases, max_setpoint), IMqttClient::QoS::QOS_0, true);
+        ret = m_mqtt->publish(m_status_topic, buildStatusMessage(status.c_str(), nb_phases, max_setpoint,  ConnectorData::typeToString(chargepoint_type).c_str()), IMqttClient::QoS::QOS_0, true);
     }
 
     return ret;
@@ -402,13 +402,13 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
             msg.AddMember(rapidjson::StringRef("car_ready"), rapidjson::Value(connector.car_ready), msg.GetAllocator());
 
             static const char* consumption_str[] = {"consumption_l1", "consumption_l2", "consumption_l3"};
-            std::vector<float> currents          = connector.meter->getCurrents();
+            std::vector<float> consumptions      = connector.meter->getConsumptions();
             unsigned int       nb_phases         = connector.meter->getNumberOfPhases();
             for (unsigned int i = 0; i < 3; i++)
             {
                 if (i < nb_phases)
                 {
-                    msg.AddMember(rapidjson::StringRef(consumption_str[i]), rapidjson::Value(currents[i]), msg.GetAllocator());
+                    msg.AddMember(rapidjson::StringRef(consumption_str[i]), rapidjson::Value(consumptions[i]), msg.GetAllocator());
                 }
                 else
                 {
@@ -427,8 +427,8 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
 }
 
 /** @brief Build the status message of the charge point */
-std::string MqttManager::buildStatusMessage(const char* status, unsigned int nb_phases, float max_setpoint)
-{
+std::string MqttManager::buildStatusMessage(const char* status, unsigned int nb_phases, float max_setpoint, const char* chargepoint_type)
+{   
     rapidjson::Document msg;
     msg.Parse("{}");
 #ifdef _MSC_VER
@@ -451,6 +451,8 @@ std::string MqttManager::buildStatusMessage(const char* status, unsigned int nb_
     msg.AddMember(rapidjson::StringRef("central_system"),
                   rapidjson::Value(m_config.stackConfig().connexionUrl().c_str(), msg.GetAllocator()).Move(),
                   msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef("type"), rapidjson::Value(chargepoint_type, msg.GetAllocator()).Move(), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef("voltage"), rapidjson::Value(m_config.stackConfig().operatingVoltage()), msg.GetAllocator());
 
     rapidjson::StringBuffer                    buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

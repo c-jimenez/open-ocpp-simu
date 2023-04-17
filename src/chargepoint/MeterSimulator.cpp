@@ -27,14 +27,15 @@ SOFTWARE.
 #include <openocpp/ITimerPool.h>
 
 /** @brief Constructor */
-MeterSimulator::MeterSimulator(ocpp::helpers::ITimerPool& timer_pool, unsigned int phases_count)
+MeterSimulator::MeterSimulator(ocpp::helpers::ITimerPool& timer_pool, unsigned int phases_count, ConnectorData::Type type)
     : m_update_timer(timer_pool),
       m_phases_count(phases_count),
       m_voltages(m_phases_count),
-      m_currents(m_phases_count),
+      m_consumptions(m_phases_count),
       m_powers(m_phases_count),
       m_energy(0),
-      m_mutex()
+      m_mutex(),
+      m_current_out_type(type)
 {
 
     // Register to timer events
@@ -71,15 +72,24 @@ void MeterSimulator::setVoltages(const std::vector<float>& voltages)
     }
 }
 
-/** @brief Set the currents in A */
-void MeterSimulator::setCurrents(const std::vector<float>& currents)
+/** @brief Set the currents (in A for AC, in W for DC) */
+void MeterSimulator::setConsumptions(const std::vector<float>& consumptions)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    for (size_t i = 0; (i < m_phases_count) && (i < currents.size()); i++)
+    for (size_t i = 0; (i < m_phases_count) && (i < consumptions.size()); i++)
     {
-        m_currents[i] = currents[i];
+        m_consumptions[i] = consumptions[i];
     }
 }
+
+/** @brief Set the power factor */
+void MeterSimulator::setPowerFactor(float powerFactor)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+        m_power_factor = powerFactor;
+
+}
+
 /** @brief Get the voltages in V */
 std::vector<float> MeterSimulator::getVoltages()
 {
@@ -88,11 +98,11 @@ std::vector<float> MeterSimulator::getVoltages()
     return ret;
 }
 
-/** @brief Get the currents in A */
-std::vector<float> MeterSimulator::getCurrents()
+/** @brief Get the consumptions (in A for AC, in W for DC) */
+std::vector<float> MeterSimulator::getConsumptions()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    std::vector<float>          ret = m_currents;
+    std::vector<float>          ret = m_consumptions;
     return ret;
 }
 
@@ -111,15 +121,39 @@ int64_t MeterSimulator::getEnergy()
     return (m_energy / 1000ll);
 }
 
+/** @brief Get the power factor */
+float MeterSimulator::getPowerFactor()
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    float                       ret = m_power_factor;
+    return ret;
+}
+
+/** @brief Get the power factor */
+ConnectorData::Type MeterSimulator::getCurrentOutType()
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    ConnectorData::Type          ret = m_current_out_type;
+    return ret;
+}
+
 /** @brief Periodically update the meter values */
 void MeterSimulator::update()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     // Compute powers
-    for (size_t i = 0; i < m_phases_count; i++)
+    if (m_current_out_type == ConnectorData::Type::AC)
     {
-        m_powers[i] = m_voltages[i] * m_currents[i];
+        for (size_t i = 0; i < m_phases_count; i++)
+        {
+            m_powers[i] = m_voltages[i] * m_consumptions[i];
+        }
+    }
+    //DC case 
+    else
+    {   // simple phase in DC, the consumption is already in power for DC
+         m_powers[0] = m_consumptions[0]; 
     }
 
     // Compute energy

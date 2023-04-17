@@ -26,12 +26,14 @@ SOFTWARE.
 #define CONNECTORDATA_H
 
 #include <openocpp/IChargePoint.h>
+#include <map>
 
 class MeterSimulator;
 
 /** @brief Data associated to a connector */
 struct ConnectorData
 {
+    enum Type { AC, DC };
     /** @brief Default constructor */
     ConnectorData()
         : id(0),
@@ -82,6 +84,20 @@ struct ConnectorData
     bool unavailable_pending;
     /** @brief Meter */
     MeterSimulator* meter;
+
+
+    static inline std::string typeToString(Type p_type)
+    {
+        static const std::string _typeToString[2] = {"AC", "DC"};
+        return _typeToString[p_type];
+    }
+
+    static inline Type stringToType(std::string p_type)
+    {
+        std::map<std::string, Type> _stringToType = {{"AC", Type::AC}, {"DC", Type::DC}};
+        return _stringToType[p_type];
+    }
+
 };
 
 #endif // CONNECTORDATA_H

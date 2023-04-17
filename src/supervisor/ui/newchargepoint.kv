@@ -27,20 +27,43 @@
     orientation: 'vertical'
 
     cp_id: ti_cp_id.text
+    type: type_spinner.text
     vendor: ti_vendor.text
     model: ti_model.text
     serial: ti_serial.text
     nb_phases: sl_nb_phases.value
-    max_current: sl_max_current.value
-    max_current_per_connector: sl_max_current_per_connector.value
+    max_setpoint: sl_max_setpoint.value
+    max_setpoint_per_connector: sl_max_setpoint_per_connector.value
     nb_connectors: sl_nb_connectors.value
     central_system: ti_central_system.text
+    operating_voltage: sl_operating_voltage.value
 
     cancel: False
     popup: None
 
     size_hint: None, None
     size: 400, 400
+    
+
+    BoxLayout:
+        size_hint_y: None
+        height: dp(50)
+        padding: dp(10)
+        spacing: dp(10)
+        Label:
+            text: 'Charge point Type (AC/DC)'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+        Spinner:
+            id: type_spinner
+            text: 'AC'
+            values: ['AC', 'DC']
+            on_text:
+                root.type = type_spinner.text
+                sl_nb_phases.value = 1 if type_spinner.text == 'DC' else 3
 
     BoxLayout:
         orientation: 'horizontal'
@@ -82,7 +105,7 @@
 
         TextInput:
             id: ti_vendor
-            text: 'OpenOCPP'
+            text: 'OpenOCPP AC'  if root.type =='AC'  else 'OpenOCPP DC'
             size_hint: 1., 1.
             size: 0, 0
             multiline: False
@@ -132,11 +155,13 @@
             multiline: False
 
     BoxLayout:
+        id: nb_phases_box
         orientation: 'horizontal'
         padding: 5
         spacing: 5
         size_hint: None, None
         size: 400, 40
+        opacity: 1  if root.type =='AC'  else 0
 
         Label:
             text: 'Number of phases'
@@ -165,6 +190,7 @@
             size: 50, 0
 
     BoxLayout:
+        id: voltage_box
         orientation: 'horizontal'
         padding: 5
         spacing: 5
@@ -172,7 +198,7 @@
         size: 400, 40
 
         Label:
-            text: 'Max current'
+            text: 'Voltage'
             text_size: self.size
             halign: 'center'
             valign: 'middle'
@@ -180,17 +206,17 @@
             size: 150, 0
 
         Slider:
-            id: sl_max_current
+            id: sl_operating_voltage
             min: 1
-            max: 64
-            value: 32
+            max: 800
+            value: 230 if root.type =='AC'  else 400
             step: 1
             orientation: 'horizontal'
             size_hint: 1., 1.
             size: 0, 0
 
         Label:
-            text: str(sl_max_current.value) + 'A'
+            text: str(sl_operating_voltage.value)
             text_size: self.size
             halign: 'center'
             valign: 'middle'
@@ -198,6 +224,7 @@
             size: 50, 0
 
     BoxLayout:
+        id: current
         orientation: 'horizontal'
         padding: 5
         spacing: 5
@@ -205,7 +232,8 @@
         size: 400, 40
 
         Label:
-            text: 'Max connector current'
+            id: max_setpoint
+            text: 'Max power' if root.type =='DC'  else 'Max current'
             text_size: self.size
             halign: 'center'
             valign: 'middle'
@@ -213,17 +241,52 @@
             size: 150, 0
 
         Slider:
-            id: sl_max_current_per_connector
+            id: sl_max_setpoint
             min: 1
-            max: sl_max_current.value
-            value: 32
+            max: 64 if root.type =='AC' else 500
+            value: 32 if root.type =='AC' else 300
             step: 1
             orientation: 'horizontal'
             size_hint: 1., 1.
             size: 0, 0
 
         Label:
-            text: str(sl_max_current_per_connector.value) + 'A'
+            id: max_current_value
+            text: str(sl_max_setpoint.value) + 'Kw'  if root.type =='DC'  else str(sl_max_setpoint.value) + 'A'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 50, 0
+
+    BoxLayout:
+        id: max_connector_current
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: None, None
+        size: 400, 40
+
+        Label:
+            text: 'Max connector power'  if root.type == 'DC'  else 'Max connector current'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+
+        Slider:
+            id: sl_max_setpoint_per_connector
+            min: 1
+            max: sl_max_setpoint.value
+            value: 1  
+            step: 1
+            orientation: 'horizontal'
+            size_hint: 1., 1.
+            size: 0, 0
+
+        Label:
+            text: str(sl_max_setpoint_per_connector.value) + 'Kw'  if root.type =='DC'  else str(sl_max_setpoint_per_connector.value) + 'A'
             text_size: self.size
             halign: 'center'
             valign: 'middle'
