@@ -289,10 +289,28 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
 /** @copydoc bool IChargePointEventsHandler::remoteStartTransactionRequested(unsigned int, const std::string&) */
 bool ChargePointEventsHandler::remoteStartTransactionRequested(unsigned int connector_id, const std::string& id_tag)
 {
+    bool ret = false;
     cout << "Remote start transaction : " << connector_id << " - " << id_tag << endl;
-    m_remote_start_pending[connector_id - 1u] = true;
-    m_remote_start_id_tag[connector_id - 1u]  = id_tag;
-    return true;
+    if (connector_id != 0)
+    {
+        m_remote_start_pending[connector_id - 1u] = true;
+        m_remote_start_id_tag[connector_id - 1u]  = id_tag;
+        ret                                       = true;
+    }
+    else
+    {
+        for (size_t i = 1; i <= m_config.ocppConfig().numberOfConnectors(); i++)
+        {
+            if (m_chargepoint->getConnectorStatus(i) < ChargePointStatus::Charging)
+            {
+                m_remote_start_pending[i - 1u] = true;
+                m_remote_start_id_tag[i - 1u]  = id_tag;
+                ret                            = true;
+                break;
+            }
+        }
+    }
+    return ret;
 }
 
 /** @copydoc bool IChargePointEventsHandler::remoteStopTransactionRequested(unsigned int) */
@@ -377,7 +395,7 @@ std::string ChargePointEventsHandler::getDiagnostics(const ocpp::types::Optional
     for (auto filename : m_config.diagFiles())
     {
         std::string filepath = filename;
-        if (filepath[0] != '/' && !m_config.workingDir().empty()) 
+        if (filepath[0] != '/' && !m_config.workingDir().empty())
         {
             filepath = m_config.workingDir() + "/" + filepath;
         }
