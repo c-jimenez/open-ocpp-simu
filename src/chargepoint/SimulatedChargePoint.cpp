@@ -67,6 +67,7 @@ void SimulatedChargePoint::start()
     ChargePointEventsHandler                         event_handler(m_config);
     std::unique_ptr<ocpp::chargepoint::IChargePoint> charge_point =
         ocpp::chargepoint::IChargePoint::create(m_config.stackConfig(), m_config.ocppConfig(), event_handler);
+    event_handler.setChargePoint(*charge_point);
 
     // Allocated data for each connector
     std::vector<MeterSimulator*> meters(m_config.ocppConfig().numberOfConnectors());
