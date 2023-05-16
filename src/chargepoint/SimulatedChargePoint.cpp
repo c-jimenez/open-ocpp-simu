@@ -37,11 +37,11 @@ SOFTWARE.
 using namespace ocpp::types;
 
 /** @brief Constructor */
-SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig& config,
-                                           unsigned int                max_charge_point_setpoint,
-                                           unsigned int                max_connector_setpoint,
-                                           unsigned int                nb_phases,
-                                           ConnectorData::Type                        chargepoint_type)
+SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
+                                           unsigned int                 max_charge_point_setpoint,
+                                           unsigned int                 max_connector_setpoint,
+                                           unsigned int                 nb_phases,
+                                           ConnectorData::ConnectorType chargepoint_type)
     : m_config(config),
       m_max_charge_point_setpoint(static_cast<float>(max_charge_point_setpoint)),
       m_max_connector_setpoint(static_cast<float>(max_connector_setpoint)),
@@ -77,7 +77,6 @@ void SimulatedChargePoint::start()
     std::vector<float>           voltages(m_nb_phases);
     voltages.assign(voltages.size(), m_config.stackConfig().operatingVoltage());
     float                        power_factor(m_config.powerFactor());
-    (void) power_factor;
     for (unsigned int i = 0; i < connectors.size(); i++)
     {
         connectors[i].id           = i + 1u;
@@ -587,7 +586,7 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
 {
     Optional<SmartChargingSetpoint> charge_point_setpoint;
     Optional<SmartChargingSetpoint> connector_setpoint;
-    ocpp::types::ChargingRateUnitType charge_point_rateUnit_type;
+    ocpp::types::ChargingRateUnitType charge_point_rate_unit_type;
 
     // Default setpoint is max current
     float whole_charge_point_setpoint = m_max_charge_point_setpoint;
@@ -598,17 +597,17 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
         // Default setpoint is max current per connector
         connector.ocpp_setpoint = connector.max_setpoint;
 
-        if (connector.meter->getCurrentOutType() == ConnectorData::Type::AC)
+        if (connector.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
         {
-            charge_point_rateUnit_type = ocpp::types::ChargingRateUnitType::A;
+            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::A;
         }
         else
         {
-            charge_point_rateUnit_type = ocpp::types::ChargingRateUnitType::W;
+            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::W;
         }
 
         // Get the smart charging setpoint
-        if (charge_point.getSetpoint(connector.id, charge_point_setpoint, connector_setpoint, charge_point_rateUnit_type))
+        if (charge_point.getSetpoint(connector.id, charge_point_setpoint, connector_setpoint, charge_point_rate_unit_type))
         {
             // Apply setpoints
             if (charge_point_setpoint.isSet())

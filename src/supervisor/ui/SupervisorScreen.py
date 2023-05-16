@@ -307,11 +307,7 @@ class SupervisorScreen(BoxLayout):
                 cp_widget.model = cp.model
                 cp_widget.serial = cp.serial
                 cp_widget.nb_phases = cp.nb_phases
-                if cp_widget.type == "DC":
-                    cp_widget.max_setpoint = cp.max_setpoint / 1000 # Convert from W to Kw to display always in Kw
-                else:
-                    cp_widget.max_setpoint = cp.max_setpoint
-
+                cp_widget.max_setpoint  = self.__cp_mgr.display_value(cp_widget.type, cp.max_setpoint)
                 cp_widget.voltage = cp.voltage
                 self.stk_connectors.add_widget(cp_widget)
 
@@ -324,11 +320,7 @@ class SupervisorScreen(BoxLayout):
                     widget.con_id = connector.id
                     widget.status = connector.status
                     widget.type = cp.type
-                    if widget.type == "DC":
-                        widget.max_setpoint = connector.max_setpoint / 1000 # Convert from W to Kw to display always in Kw
-                    else:
-                        widget.max_setpoint = connector.max_setpoint
-
+                    widget.max_setpoint = self.__cp_mgr.display_value(widget.type, connector.max_setpoint)
                     widget.consumption_l1 = connector.consumption_l1
                     widget.consumption_l2 = connector.consumption_l2
                     widget.consumption_l3 = connector.consumption_l3

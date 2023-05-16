@@ -370,7 +370,7 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
         }
         period.numberPhases       = connector_data.meter->getNumberOfPhases();
         period.startPeriod        = 0;
-        if (connector_data.meter->getCurrentOutType() == ConnectorData::Type::AC)
+        if (connector_data.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
         {
             schedule.chargingRateUnit = ChargingRateUnitType::A;
         }

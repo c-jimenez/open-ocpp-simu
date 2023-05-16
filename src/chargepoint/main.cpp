@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
                       << std::endl;
             std::cout << "    -e : Charge Point's type (AC/DC) (Default = AC)" << std::endl;
             std::cout << "    -f : Files to put in diagnostic zip. Absolute path or relative path from working directory. " << std::endl;
-            std::cout << "Default = [ocpp.db]" << std::endl;
+            std::cout << "         (Default = ocpp.db)" << std::endl;
             return 1;
         }
     }
@@ -226,9 +226,9 @@ int main(int argc, char* argv[])
     }
     config.setMqttConfigValue("BrokerUrl", mqtt_broker_url);
 
-    ConnectorData::Type cp_currentOutType = ConnectorData::stringToType(chargepoint_type);
+    ConnectorData::ConnectorType cp_current_out_type  = ConnectorData::ConnectorTypeHelper.fromString(chargepoint_type);
     
-    if (cp_currentOutType == ConnectorData::Type::AC)
+    if (cp_current_out_type  == ConnectorData::ConnectorType::AC)
     {
         config.setOcppConfigValue("MeterValuesSampledData", "Current.Import,Energy.Active.Import.Register,Current.Offered");
         config.setOcppConfigValue("ChargingScheduleAllowedChargingRateUnit", "Current");
@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
     }
 
     // Start simulated charge point
-    SimulatedChargePoint chargepoint(config, max_charge_point_setpoint, max_connector_setpoint, nb_phases, cp_currentOutType);
+    SimulatedChargePoint chargepoint(config, max_charge_point_setpoint, max_connector_setpoint, nb_phases, cp_current_out_type);
     chargepoint.start();
 
     return 0;

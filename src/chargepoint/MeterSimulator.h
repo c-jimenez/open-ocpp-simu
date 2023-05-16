@@ -35,7 +35,7 @@ class MeterSimulator
 {
   public:
     /** @brief Constructor */
-    MeterSimulator(ocpp::helpers::ITimerPool& timer_pool, unsigned int phases_count, ConnectorData::Type type);
+    MeterSimulator(ocpp::helpers::ITimerPool& timer_pool, unsigned int phases_count, ConnectorData::ConnectorType type);
 
     /** @brief Destructor */
     virtual ~MeterSimulator();
@@ -74,7 +74,7 @@ class MeterSimulator
     float getPowerFactor();
 
     /** @brief Get Connector type (AC/DC) */
-    ConnectorData::Type getCurrentOutType();
+    ConnectorData::ConnectorType getCurrentOutType();
 
   private:
     /** @brief Timer to update meter values */
@@ -84,7 +84,7 @@ class MeterSimulator
 
     /** @brief Voltages in V */
     std::vector<float> m_voltages;
-    /** @brief consumptions (in A for AC, in W for DC) */
+    /** @brief Consumptions (in A for AC, in W for DC) */
     std::vector<float> m_consumptions;
     /** @brief Instant powers in W */
     std::vector<float> m_powers;
@@ -98,7 +98,7 @@ class MeterSimulator
     std::mutex m_mutex;
 
     /** @brief Connector type (AC/DC) */
-    ConnectorData::Type m_current_out_type;
+    ConnectorData::ConnectorType m_current_out_type;
 
     /** @brief Update period */
     static constexpr std::chrono::milliseconds UPDATE_PERIOD = std::chrono::milliseconds(500);

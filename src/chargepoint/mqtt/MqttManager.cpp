@@ -198,7 +198,7 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
 }
 
 /** @brief Start the MQTT connection process (blocking) */
-void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_current, ConnectorData::Type chargepoint_type)
+void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_current, ConnectorData::ConnectorType chargepoint_type)
 {
     // Compute topics path
     std::string chargepoint_topic(CHARGE_POINTS_TOPIC);
@@ -217,8 +217,13 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
     m_mqtt->registerListener(*this);
 
     // Set the will message
-    m_mqtt->setWill(
-        m_status_topic, buildStatusMessage("Dead", nb_phases, static_cast<float>(max_charge_point_current), ConnectorData::typeToString(chargepoint_type).c_str()), IMqttClient::QoS::QOS_0, true);
+    m_mqtt->setWill(m_status_topic,
+                    buildStatusMessage("Dead",
+                                       nb_phases,
+                                       static_cast<float>(max_charge_point_current),
+                                       ConnectorData::ConnectorTypeHelper.toString(chargepoint_type).c_str()),
+                    IMqttClient::QoS::QOS_0,
+                    true);
 
     // Connection loop
     do
@@ -271,7 +276,10 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
         {
             // Update the status message
             m_mqtt->publish(m_status_topic,
-                            buildStatusMessage("Dead", nb_phases, static_cast<float>(max_charge_point_current), ConnectorData::typeToString(chargepoint_type).c_str()),
+                            buildStatusMessage("Dead",
+                                               nb_phases,
+                                               static_cast<float>(max_charge_point_current),
+                                               ConnectorData::ConnectorTypeHelper.toString(chargepoint_type).c_str()),
                             IMqttClient::QoS::QOS_0,
                             true);
         }
@@ -319,7 +327,7 @@ void MqttManager::updateData(std::vector<ConnectorData>& connectors) const
 }
 
 /** @brief Publish the status of the charge point */
-bool MqttManager::publishStatus(const std::string& status, unsigned int nb_phases, float max_setpoint, ConnectorData::Type chargepoint_type)
+bool MqttManager::publishStatus(const std::string& status, unsigned int nb_phases, float max_setpoint, ConnectorData::ConnectorType chargepoint_type)
 {
     bool ret = false;
 
@@ -327,7 +335,12 @@ bool MqttManager::publishStatus(const std::string& status, unsigned int nb_phase
     if (m_mqtt->isConnected())
     {
         // Publish
-        ret = m_mqtt->publish(m_status_topic, buildStatusMessage(status.c_str(), nb_phases, max_setpoint,  ConnectorData::typeToString(chargepoint_type).c_str()), IMqttClient::QoS::QOS_0, true);
+        ret = m_mqtt->publish(
+            m_status_topic,
+            buildStatusMessage(
+                status.c_str(), nb_phases, max_setpoint, ConnectorData::ConnectorTypeHelper.toString(chargepoint_type).c_str()),
+            IMqttClient::QoS::QOS_0,
+            true);
     }
 
     return ret;

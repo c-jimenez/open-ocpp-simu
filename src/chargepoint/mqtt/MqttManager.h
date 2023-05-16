@@ -57,7 +57,7 @@ class MqttManager : public IMqttClient::IListener
     bool isEndOfApplication() const { return m_end; }
 
     /** @brief Start the MQTT connection process (blocking) */
-    void start(unsigned int nb_phases, unsigned int max_charge_point_current, ConnectorData::Type chargepoint_type);
+    void start(unsigned int nb_phases, unsigned int max_charge_point_current, ConnectorData::ConnectorType chargepoint_type);
 
     /** @brief Indicate a pending Id tag */
     bool isIdTagPending(unsigned int connector_id) const;
@@ -72,7 +72,7 @@ class MqttManager : public IMqttClient::IListener
     void updateData(std::vector<ConnectorData>& connectors) const;
 
     /** @brief Publish the status of the charge point */
-    bool publishStatus(const std::string& status, unsigned int nb_phases, float max_setpoint, ConnectorData::Type chargepoint_type);
+    bool publishStatus(const std::string& status, unsigned int nb_phases, float max_setpoint, ConnectorData::ConnectorType chargepoint_type);
 
     /** @brief Publish the data of the connectors */
     void publishData(const std::vector<ConnectorData>& connectors);

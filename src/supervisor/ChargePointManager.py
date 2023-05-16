@@ -380,10 +380,7 @@ class ChargePointManager(object):
                     con.ocpp_setpoint = data["ocpp_setpoint"]
                     con.setpoint = data["setpoint"]
                     if cp.nb_phases == 1:
-                        if cp.type == "DC":
-                            con.consumption_l1 = data["consumption_l1"]  / 1000 # Convert from W to Kw to display always in Kw
-                        else: 
-                            con.consumption_l1 = data["consumption_l1"]
+                        con.consumption_l1 = self.display_value(cp.type, data["consumption_l1"])
                     if cp.nb_phases == 2: 
                         con.consumption_l1 = data["consumption_l1"]
                         con.consumption_l2 = data["consumption_l2"] 
@@ -391,16 +388,10 @@ class ChargePointManager(object):
                         con.consumption_l1 = data["consumption_l1"]
                         con.consumption_l2 = data["consumption_l2"] 
                         con.consumption_l3 = data["consumption_l3"]
-                    if cp.type == "DC":
-                        con.car_consumption_l1 = data["car_consumption_l1"]  / 1000 # Convert from W to Kw to display always in Kw
-                    else:
-                        con.car_consumption_l1 = data["car_consumption_l1"]
+                    con.car_consumption_l1 = self.display_value(cp.type, data["car_consumption_l1"])
                     con.car_consumption_l2 = data["car_consumption_l2"]
                     con.car_consumption_l3 = data["car_consumption_l3"]
-                    if cp.type == "DC":
-                        con.car_cable_capacity = data["car_cable_capacity"]  / 1000 # Convert from W to Kw to display always in Kw
-                    else:
-                        con.car_cable_capacity = data["car_cable_capacity"]
+                    con.car_cable_capacity = self.display_value(cp.type, data["car_cable_capacity"])
 
                     con.car_ready = data["car_ready"]
 
@@ -526,3 +517,8 @@ class ChargePointManager(object):
             ret = True
 
         return ret
+    
+    def display_value(self, connector_type, value):
+        if connector_type == "DC":
+            value = value / 1000  # Convert from W to Kw to display always in Kw
+        return value

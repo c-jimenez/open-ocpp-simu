@@ -27,7 +27,7 @@ SOFTWARE.
 #include <openocpp/ITimerPool.h>
 
 /** @brief Constructor */
-MeterSimulator::MeterSimulator(ocpp::helpers::ITimerPool& timer_pool, unsigned int phases_count, ConnectorData::Type type)
+MeterSimulator::MeterSimulator(ocpp::helpers::ITimerPool& timer_pool, unsigned int phases_count, ConnectorData::ConnectorType type)
     : m_update_timer(timer_pool),
       m_phases_count(phases_count),
       m_voltages(m_phases_count),
@@ -86,8 +86,7 @@ void MeterSimulator::setConsumptions(const std::vector<float>& consumptions)
 void MeterSimulator::setPowerFactor(float powerFactor)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-        m_power_factor = powerFactor;
-
+    m_power_factor = powerFactor;
 }
 
 /** @brief Get the voltages in V */
@@ -129,11 +128,11 @@ float MeterSimulator::getPowerFactor()
     return ret;
 }
 
-/** @brief Get the power factor */
-ConnectorData::Type MeterSimulator::getCurrentOutType()
+/** @brief Get the current out type (AC/DC) */
+ConnectorData::ConnectorType MeterSimulator::getCurrentOutType()
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    ConnectorData::Type          ret = m_current_out_type;
+    std::lock_guard<std::mutex>  lock(m_mutex);
+    ConnectorData::ConnectorType ret = m_current_out_type;
     return ret;
 }
 
@@ -143,7 +142,7 @@ void MeterSimulator::update()
     std::lock_guard<std::mutex> lock(m_mutex);
 
     // Compute powers
-    if (m_current_out_type == ConnectorData::Type::AC)
+    if (m_current_out_type == ConnectorData::ConnectorType::AC)
     {
         for (size_t i = 0; i < m_phases_count; i++)
         {
@@ -152,7 +151,7 @@ void MeterSimulator::update()
     }
     //DC case 
     else
-    {   // simple phase in DC, the consumption is already in power for DC
+    {   // Single phase in DC, the consumption is already in power for DC
          m_powers[0] = m_consumptions[0]; 
     }
 
