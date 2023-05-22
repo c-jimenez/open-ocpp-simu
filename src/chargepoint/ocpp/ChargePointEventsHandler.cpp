@@ -174,7 +174,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
         {
             case Measurand::CurrentImport:
             {
-                auto currents = meter_simulator->getCurrents();
+                auto currents = meter_simulator->getConsumptions();
                 if (measurand.second.isSet())
                 {
                     unsigned int phase = static_cast<unsigned int>(measurand.second.value());
@@ -202,6 +202,14 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
             break;
 
             case Measurand::CurrentOffered:
+            {
+                auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
+                value.value   = std::to_string(static_cast<unsigned int>(setpoint));
+                meter_value.sampledValue.push_back(value);
+            }
+            break;
+
+            case Measurand::PowerOffered:
             {
                 auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
                 value.value   = std::to_string(static_cast<unsigned int>(setpoint));
@@ -243,6 +251,14 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                         meter_value.sampledValue.push_back(value);
                     }
                 }
+            }
+            break;
+
+            case Measurand::PowerFactor:
+            {
+                value.value = std::to_string(meter_simulator->getPowerFactor());
+                value.phase = ocpp::types::Optional<Phase>();
+                meter_value.sampledValue.push_back(value);
             }
             break;
 
@@ -354,7 +370,14 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
         }
         period.numberPhases       = connector_data.meter->getNumberOfPhases();
         period.startPeriod        = 0;
-        schedule.chargingRateUnit = ChargingRateUnitType::A;
+        if (connector_data.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
+        {
+            schedule.chargingRateUnit = ChargingRateUnitType::A;
+        }
+        else
+        {
+            schedule.chargingRateUnit = ChargingRateUnitType::W;
+        }
         schedule.chargingSchedulePeriod.push_back(period);
 
         ret = true;

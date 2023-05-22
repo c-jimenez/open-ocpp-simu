@@ -162,7 +162,7 @@ When adding a new simulated Charge Point, the following window will appear :
 
 ![Alt text](imgs/add.png "Supervisor window")
 
-At this step you will configure the simulated Charge Point's behavior for current consumption and the URL of the Central System it must connect to.
+At this step you will configure the simulated Charge Point's behavior for charge point type (AC/DC), current consumption and the URL of the Central System it must connect to.
 
 **Warning** : These settings cannot be modified afterwards. You will have to remove the current Charge Point and add a new one to "modify" them.
 
@@ -239,8 +239,11 @@ Payload :
 {
     "type": "start",
     "charge_points": [
-        { "id": "simu_cp_XXX", "vendor": "Open OCPP", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "max_current": 32, "max_current_per_connector": 16 },
-        { "id": "simu_cp_YYY", "vendor": "Open OCPP", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "max_current": 32, "max_current_per_connector": 32 }
+        { "id": "simu_cp_XXX", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 16 },
+        { "id": "simu_cp_YYY", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 32 },
+        { "id": "simu_cp_XXX", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 1, "voltage": 400.0, "max_setpoint": 300000, "max_setpoint_per_connector": 300000 },
+        { "id": "simu_cp_YYY", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 500000, "max_setpoint_per_connector": 250000 },
+
     ]
 }
 ```
@@ -271,8 +274,10 @@ Payload :
 {
     "type": "restart",
     "charge_points": [
-        { "id": "simu_cp_XXX", "vendor": "Open OCPP", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "max_current": 32, "max_current_per_connector": 16 },
-        { "id": "simu_cp_YYY", "vendor": "Open OCPP", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "max_current": 32, "max_current_per_connector": 32 }
+        { "id": "simu_cp_XXX", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 16 },
+        { "id": "simu_cp_YYY", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 32 },
+        { "id": "simu_cp_XXX", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 1, "voltage": 400.0, "max_setpoint": 300000, "max_setpoint_per_connector": 300000 },
+        { "id": "simu_cp_YYY", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 500000, "max_setpoint_per_connector": 250000 },
     ]
 }
 ```
@@ -292,7 +297,9 @@ The status message has the following payload :
     "serial":"S/NABCD1234",
     "nb_phases":3,
     "max_setpoint":32.0,
-    "central_system":"wss://127.0.0.1:9980/"
+    "central_system":"wss://127.0.0.1:9980/",
+    "type":"AC",
+    "voltage":230.0"
 }
 ```
 

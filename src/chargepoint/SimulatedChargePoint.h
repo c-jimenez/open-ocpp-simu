@@ -28,6 +28,7 @@ SOFTWARE.
 #include "ConnectorData.h"
 
 #include <vector>
+#include <string>
 
 class SimulatedChargePointConfig;
 class MqttManager;
@@ -40,14 +41,15 @@ class SimulatedChargePoint
     /**
      * @brief Constructor
      * @param config Configuration
-     * @param max_charge_point_current Max current in A for the whole Charge Point
-     * @param max_connector_current Max current in A for a connector of the Charge Point
+     * @param max_charge_point_setpoint Max setpoint (in A for AC, in W forDC) for the whole Charge Point
+     * @param max_connector_setpoint Max setpoint (in A for AC, in W forDC) for a connector of the Charge Point
      * @param nb_phases Number of phases alimenting the Charge Point
      */
-    SimulatedChargePoint(SimulatedChargePointConfig& config,
-                         unsigned int                max_charge_point_current,
-                         unsigned int                max_connector_current,
-                         unsigned int                nb_phases);
+    SimulatedChargePoint(SimulatedChargePointConfig&  config,
+                         unsigned int                 max_charge_point_setpoint,
+                         unsigned int                 max_connector_setpoint,
+                         unsigned int                 nb_phases,
+                         ConnectorData::ConnectorType chargepoint_type);
 
     /** @brief Destructor */
     virtual ~SimulatedChargePoint();
@@ -59,12 +61,15 @@ class SimulatedChargePoint
     /** @brief Configuration */
     SimulatedChargePointConfig& m_config;
 
-    /** @brief Max current in A for the whole Charge Point */
-    float m_max_charge_point_current;
-    /** @brief Max current in A for a connector of the Charge Point */
-    float m_max_connector_current;
+    /** @brief Max setpoint (in A for AC, in W forDC) for the whole Charge Point */
+    float m_max_charge_point_setpoint;
+    /** @brief Max setpoint (in A for AC, in W forDC) for a connector of the Charge Point */
+    float m_max_connector_setpoint;
     /** @brief Number of phases alimenting the Charge Point */
     unsigned int m_nb_phases;
+    /** @brief The Charge Point type (AC/DC) */
+    ConnectorData::ConnectorType m_charge_point_type;
+
 
     /** @brief Control loop */
     void loop(MqttManager&                     mqtt,
@@ -88,8 +93,8 @@ class SimulatedChargePoint
     /** @brief Compute the setpoint for each connector */
     void computeSetpoints(ocpp::chargepoint::IChargePoint& charge_point, std::vector<ConnectorData>& connectors);
 
-    /** @brief Compute the current consumption for a connector */
-    void computeCurrentConsumption(ConnectorData& connector);
+    /** @brief Compute the consumption (current or power) for a connector */
+    void computeConsumption(ConnectorData& connector);
 };
 
 #endif // SIMULATEDCHARGEPOINT_H

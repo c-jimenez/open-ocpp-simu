@@ -93,15 +93,24 @@ class SupervisorScreen(BoxLayout):
             if not content.cancel:
                 # Send command
                 cp = ChargePoint(content.cp_id)
+                cp.type = content.type
                 cp.vendor = content.vendor
                 cp.model = content.model
                 cp.serial = content.serial
                 cp.nb_phases = content.nb_phases
-                cp.max_setpoint = content.max_current
+                if cp.type == "DC":
+                    cp.max_setpoint = content.max_setpoint * 1000 # Convert from Kw to W
+                else:
+                    cp.max_setpoint = content.max_setpoint
                 cp.central_system = content.central_system
+                cp.voltage = content.operating_voltage
                 for i in range(1, content.nb_connectors + 1):
                     connector = Connector(i)
-                    connector.max_setpoint = content.max_current_per_connector
+                    connector.type = content.type
+                    if connector.type == "DC":
+                        connector.max_setpoint = content.max_setpoint_per_connector * 1000 # Convert from Kw to W
+                    else:
+                        connector.max_setpoint = content.max_setpoint_per_connector 
                     cp.connectors[i] = connector
                 self.__cp_mgr.new_charge_point(cp)
 
@@ -109,7 +118,7 @@ class SupervisorScreen(BoxLayout):
         content = NewChargePointWidget()
         popup = Popup(title='New simulated charge point',
                       content=content,
-                      size_hint=(None, None), size=(430, 470),
+                      size_hint=(None, None), size=(510, 560),
                       auto_dismiss=False)
         content.popup = popup
         popup.bind(on_dismiss=popup_callback)
@@ -292,12 +301,14 @@ class SupervisorScreen(BoxLayout):
                 # Add charge point widget
                 cp_widget = ChargePointWidget()
                 cp_widget.cp_id = cp_id
+                cp_widget.type =  cp.type
                 cp_widget.status = cp.status
                 cp_widget.vendor = cp.vendor
                 cp_widget.model = cp.model
                 cp_widget.serial = cp.serial
                 cp_widget.nb_phases = cp.nb_phases
-                cp_widget.max_current = cp.max_setpoint
+                cp_widget.max_setpoint  = self.__cp_mgr.display_value(cp_widget.type, cp.max_setpoint)
+                cp_widget.voltage = cp.voltage
                 self.stk_connectors.add_widget(cp_widget)
 
                 # Add connectors widgets
@@ -308,7 +319,8 @@ class SupervisorScreen(BoxLayout):
                     widget = ConnectorWidget()
                     widget.con_id = connector.id
                     widget.status = connector.status
-                    widget.max_current = connector.max_setpoint
+                    widget.type = cp.type
+                    widget.max_setpoint = self.__cp_mgr.display_value(widget.type, connector.max_setpoint)
                     widget.consumption_l1 = connector.consumption_l1
                     widget.consumption_l2 = connector.consumption_l2
                     widget.consumption_l3 = connector.consumption_l3
@@ -334,7 +346,6 @@ class SupervisorScreen(BoxLayout):
 
     def on_connector_value_changed(self, connector, *args):
         """ Called when a value in the connector has changed """
-        # Send new connector values
         self.__cp_mgr.send_connector_values(
             self.__selected_cp_id, connector.con_id, connector.car_consumption_l1, connector.car_consumption_l2, connector.car_consumption_l3, connector.car_cable, connector.car_ready)
 

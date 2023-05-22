@@ -29,19 +29,20 @@
     orientation: 'vertical'
 
     cp_id: "Charge Point"
+    type: "None"
     status: "Dead"
     vendor: "OpenOCPP"
     model: "OpenOCPP simu"
     serial: "S/NABCED1234"
     nb_phases: 3
-    max_current: 20
+    max_setpoint: 20
+    voltage: 230
 
     size_hint: None, None
-    size: 400, 240
+    size: 440, 280
 
     BackgroundLabel:
-        text: root.cp_id + " - " + root.status
-        text_size: self.size
+        text: root.cp_id + " - " + root.status 
         halign: 'center'
         valign: 'middle'
         size_hint: None, None
@@ -154,15 +155,40 @@
         size: 400, 40
 
         Label:
-            text: 'Max current'
+            text: 'Max current' if root.type == 'AC' else 'Max power'
             text_size: self.size
             halign: 'center'
             valign: 'middle'
             size_hint: None, 1.
             size: 150, 0
 
+
         Label:
-            text: str(root.max_current) + 'A'
+            text: str(root.max_setpoint) + ' A' if root.type == 'AC' else str(root.max_setpoint) + ' Kw'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: 1., 1.
+            size: 0, 0
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: None, None
+        size: 400, 40
+
+        Label:
+            text: 'Voltage'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+
+
+        Label:
+            text: str(root.voltage) + ' V'
             text_size: self.size
             halign: 'center'
             valign: 'middle'

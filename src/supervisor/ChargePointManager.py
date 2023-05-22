@@ -60,6 +60,8 @@ class Connector(object):
         self.car_cable_capacity = 0
         # Car ready for charging
         self.car_ready = False
+        # type (AC/DC)
+        self.type = ""
 
 
 class ChargePoint(object):
@@ -70,6 +72,8 @@ class ChargePoint(object):
 
         # Id
         self.id = id
+        # Type
+        self.type = ""
         # Status
         self.status = ""
         # Vendor
@@ -86,6 +90,8 @@ class ChargePoint(object):
         self.connectors = {}
         # Central System URL
         self.central_system = ""
+        # Operating voltage
+        self.voltage = 0
 
 
 class ChargePointManager(object):
@@ -151,10 +157,10 @@ class ChargePointManager(object):
 
             # Build topic name
             topic_name = "cp_simu/cps/"+cp_id+"/connectors/"+str(con_id)+"/car"
-
             # Build message
             payload = {"cable": car_cable, "ready": car_ready,
-                       "consumption_l1": car_consumption_l1, "consumption_l2": car_consumption_l2, "consumption_l3": car_consumption_l3}
+                           "consumption_l1": car_consumption_l1 , "consumption_l2": car_consumption_l2, "consumption_l3": car_consumption_l3}
+
 
             # Publish message
             ret = self.__client.publish(topic_name, json.dumps(payload))
@@ -344,12 +350,14 @@ class ChargePointManager(object):
                     # Fill data
                     data = json.loads(payload)
                     cp.status = data["status"]
+                    cp.type = data["type"]
                     cp.vendor = data["vendor"]
                     cp.model = data["model"]
                     cp.serial = data["serial"]
                     cp.nb_phases = data["nb_phases"]
                     cp.max_setpoint = data["max_setpoint"]
                     cp.central_system = data["central_system"]
+                    cp.voltage = data["voltage"]
 
                 else:
                     # Connector's status
@@ -371,13 +379,20 @@ class ChargePointManager(object):
                     con.max_setpoint = data["max_setpoint"]
                     con.ocpp_setpoint = data["ocpp_setpoint"]
                     con.setpoint = data["setpoint"]
-                    con.consumption_l1 = data["consumption_l1"]
-                    con.consumption_l2 = data["consumption_l2"]
-                    con.consumption_l3 = data["consumption_l3"]
-                    con.car_consumption_l1 = data["car_consumption_l1"]
+                    if cp.nb_phases == 1:
+                        con.consumption_l1 = self.display_value(cp.type, data["consumption_l1"])
+                    if cp.nb_phases == 2: 
+                        con.consumption_l1 = data["consumption_l1"]
+                        con.consumption_l2 = data["consumption_l2"] 
+                    if cp.nb_phases == 3: 
+                        con.consumption_l1 = data["consumption_l1"]
+                        con.consumption_l2 = data["consumption_l2"] 
+                        con.consumption_l3 = data["consumption_l3"]
+                    con.car_consumption_l1 = self.display_value(cp.type, data["car_consumption_l1"])
                     con.car_consumption_l2 = data["car_consumption_l2"]
                     con.car_consumption_l3 = data["car_consumption_l3"]
-                    con.car_cable_capacity = data["car_cable_capacity"]
+                    con.car_cable_capacity = self.display_value(cp.type, data["car_cable_capacity"])
+
                     con.car_ready = data["car_ready"]
 
                 # Notify update
@@ -388,17 +403,19 @@ class ChargePointManager(object):
         """ Convert a ChargePoint object to a dictionary for JSON encoding """
         cp_dict = {}
         cp_dict["id"] = cp.id
+        cp_dict["type"] = cp.type
         cp_dict["vendor"] = cp.vendor
         cp_dict["model"] = cp.model
         cp_dict["serial"] = cp.serial
         cp_dict["nb_phases"] = cp.nb_phases
         cp_dict["nb_connectors"] = len(cp.connectors)
-        cp_dict["max_current"] = int(cp.max_setpoint)
+        cp_dict["max_setpoint"] = int(cp.max_setpoint)
+        cp_dict["voltage"] = cp.voltage
         if len(cp.connectors) > 0:
-            cp_dict["max_current_per_connector"] = int(
+            cp_dict["max_setpoint_per_connector"] = int(
                 cp.connectors[1].max_setpoint)
         else:
-            cp_dict["max_current_per_connector"] = 0
+            cp_dict["max_setpoint_per_connector"] = 0
         cp_dict["central_system"] = cp.central_system
         return cp_dict
 
@@ -500,3 +517,8 @@ class ChargePointManager(object):
             ret = True
 
         return ret
+    
+    def display_value(self, connector_type, value):
+        if connector_type == "DC":
+            value = value / 1000  # Convert from W to Kw to display always in Kw
+        return value

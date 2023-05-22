@@ -32,13 +32,14 @@ class ConnectorWidget(BoxLayout):
 
     con_id = NumericProperty(None)
     status = StringProperty(None)
-    max_current = NumericProperty(None)
+    max_setpoint = NumericProperty(None)
     car_consumption_l1 = NumericProperty(None)
     car_consumption_l2 = NumericProperty(None)
     car_consumption_l3 = NumericProperty(None)
     car_cable = NumericProperty(None)
     car_ready = BooleanProperty(None)
     id_tag = StringProperty(None)
+    type = StringProperty(None)
 
     def set_properties(self, car_consumption_l1: float, car_consumption_l2: float, car_consumption_l3: float, car_cable: float, car_ready: bool, id_tag: str) -> None:
         """ Set the properties values """

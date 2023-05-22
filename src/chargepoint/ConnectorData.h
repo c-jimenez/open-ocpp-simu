@@ -25,13 +25,23 @@ SOFTWARE.
 #ifndef CONNECTORDATA_H
 #define CONNECTORDATA_H
 
+#include <map>
 #include <openocpp/IChargePoint.h>
+#include <openocpp/EnumToStringFromString.h>
+
+using namespace ocpp::types;
 
 class MeterSimulator;
+
 
 /** @brief Data associated to a connector */
 struct ConnectorData
 {
+    /** @brief Connector type (AC/DC) */
+    enum class ConnectorType { AC, DC };
+
+    static inline const EnumToStringFromString<ConnectorType> ConnectorTypeHelper{{{ConnectorType::AC, "AC"}, {ConnectorType::DC, "DC"}}};
+
     /** @brief Default constructor */
     ConnectorData()
         : id(0),
