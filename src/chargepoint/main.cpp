@@ -76,6 +76,8 @@ int main(int argc, char* argv[])
     unsigned int          max_connector_setpoint    = 32u;
     std::set<std::string> diag_files                = {"ocpp.db"};
     std::string           chargepoint_type          = "AC";
+    std::string           vendor_name               = "";
+    unsigned int          operating_voltage         = 0u;
 
     // Check parameters
     if (argc > 1)
@@ -162,6 +164,18 @@ int main(int argc, char* argv[])
                 argc--;
                 chargepoint_type = *argv;
             }
+            else if ((strcmp(*argv, "-v") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                vendor_name = *argv;
+            }
+            else if ((strcmp(*argv, "-o") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                operating_voltage = static_cast<unsigned int>(std::atoi(*argv));
+            }
             else
             {
                 param     = *argv;
@@ -193,6 +207,8 @@ int main(int argc, char* argv[])
             std::cout << "    -i : Max setpoint (in A for AC, in W for DC) for a connector of the Charge Point (Default = 32A)"
                       << std::endl;
             std::cout << "    -e : Charge Point's type (AC/DC) (Default = AC)" << std::endl;
+            std::cout << "    -v : Vendor name (Default = OpenOCPP)" << std::endl;
+            std::cout << "    -o : Operating voltage (Default = 230)" << std::endl;
             std::cout << "    -f : Files to put in diagnostic zip. Absolute path or relative path from working directory. " << std::endl;
             std::cout << "         (Default = ocpp.db)" << std::endl;
             return 1;
@@ -237,6 +253,15 @@ int main(int argc, char* argv[])
     {
         config.setOcppConfigValue("MeterValuesSampledData", "Energy.Active.Import.Register,Power.Active.Import,Power.Factor,Voltage,Power.Offered");
         config.setOcppConfigValue("ChargingScheduleAllowedChargingRateUnit", "Power");
+    }
+
+    if (!vendor_name.empty())
+    {
+        config.setStackConfigValue("ChargePointVendor", vendor_name);
+    }
+
+    if (operating_voltage != 0) {
+        config.setStackConfigValue("OperatingVoltage", std::to_string(operating_voltage));
     }
 
     // Start simulated charge point
