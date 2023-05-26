@@ -169,6 +169,13 @@ int main(int argc, char* argv[])
                 argv++;
                 argc--;
                 vendor_name = *argv;
+                while ((argc > 2) && (*argv[1] != '-'))
+                {
+                    argv++;
+                    argc--;
+                    vendor_name += " ";
+                    vendor_name += *argv;
+                }
             }
             else if ((strcmp(*argv, "-o") == 0) && (argc > 1))
             {
