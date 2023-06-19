@@ -78,6 +78,7 @@ int main(int argc, char* argv[])
     std::string           chargepoint_type          = "AC";
     std::string           vendor_name               = "";
     unsigned int          operating_voltage         = 0u;
+    bool                  smart_charging            = true;
 
     // Check parameters
     if (argc > 1)
@@ -183,6 +184,12 @@ int main(int argc, char* argv[])
                 argc--;
                 operating_voltage = static_cast<unsigned int>(std::atoi(*argv));
             }
+            else if ((strcmp(*argv, "-d") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                smart_charging = *argv;
+            }
             else
             {
                 param     = *argv;
@@ -218,6 +225,7 @@ int main(int argc, char* argv[])
             std::cout << "    -o : Operating voltage (Default = 230)" << std::endl;
             std::cout << "    -f : Files to put in diagnostic zip. Absolute path or relative path from working directory. " << std::endl;
             std::cout << "         (Default = ocpp.db)" << std::endl;
+            std::cout << "    -d : Enable smart charging (Default = true)" << std::endl;
             return 1;
         }
     }
@@ -272,7 +280,7 @@ int main(int argc, char* argv[])
     }
 
     // Start simulated charge point
-    SimulatedChargePoint chargepoint(config, max_charge_point_setpoint, max_connector_setpoint, nb_phases, cp_current_out_type);
+    SimulatedChargePoint chargepoint(config, max_charge_point_setpoint, max_connector_setpoint, nb_phases, cp_current_out_type, smart_charging);
     chargepoint.start();
 
     return 0;

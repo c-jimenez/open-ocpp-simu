@@ -192,7 +192,7 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
         if (charge_point.HasMember("id") && charge_point.HasMember("vendor") && charge_point.HasMember("type") && charge_point.HasMember("model") &&
             charge_point.HasMember("serial") && charge_point.HasMember("max_setpoint") && charge_point.HasMember("nb_connectors") &&
             charge_point.HasMember("max_setpoint_per_connector") && charge_point.HasMember("nb_phases") &&
-            charge_point.HasMember("central_system") && charge_point.HasMember("voltage"))
+            charge_point.HasMember("central_system") && charge_point.HasMember("voltage") && charge_point.HasMember("smart_charge_enabled"))
         {
             // Extract charge point parameters
             std::string  id                        = charge_point["id"].GetString();
@@ -206,6 +206,7 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
             unsigned int max_setpoint              = charge_point["max_setpoint"].GetUint();
             unsigned int max_current_per_connector = charge_point["max_setpoint_per_connector"].GetUint();
             float voltage                          = charge_point["voltage"].GetFloat();
+            bool smart_charge_enabled              = charge_point["smart_charge_enabled"].GetBool();
 
             // Check if charge point is already running
             if ((m_cp_status.find(id) == m_cp_status.end()) || !m_cp_status[id])
@@ -249,12 +250,14 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 cmd << " -m " << max_setpoint;
                 cmd << " -i " << max_current_per_connector;
                 cmd << " -e " << type;
+                cmd << " -d " << smart_charge_enabled;
 #ifndef _MSC_VER
                 cmd << " &" << std::endl;
 #endif // _MSC_VER
 
                 // Start charge point
 #ifndef _MSC_VER
+                std::cout << "Cmd : " << cmd.str() << std::endl;
                 system(cmd.str().c_str());
 #else // _MSC_VER
                 STARTUPINFO         si;

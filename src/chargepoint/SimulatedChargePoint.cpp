@@ -41,12 +41,14 @@ SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
                                            unsigned int                 max_charge_point_setpoint,
                                            unsigned int                 max_connector_setpoint,
                                            unsigned int                 nb_phases,
-                                           ConnectorData::ConnectorType chargepoint_type)
+                                           ConnectorData::ConnectorType chargepoint_type,
+                                           bool                         smart_charge_enabled)
     : m_config(config),
       m_max_charge_point_setpoint(static_cast<float>(max_charge_point_setpoint)),
       m_max_connector_setpoint(static_cast<float>(max_connector_setpoint)),
       m_nb_phases(nb_phases),
-      m_charge_point_type(chargepoint_type)
+      m_charge_point_type(chargepoint_type),
+      m_smart_charge_enabled(smart_charge_enabled)
 {
 }
 
@@ -591,37 +593,40 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
     // Default setpoint is max current
     float whole_charge_point_setpoint = m_max_charge_point_setpoint;
 
-    // Get the smart charging setpoint for each connectors
-    for (ConnectorData& connector : connectors)
+    if (m_smart_charge_enabled)
     {
-        // Default setpoint is max current per connector
-        connector.ocpp_setpoint = connector.max_setpoint;
+        // Get the smart charging setpoint for each connectors
+        for (ConnectorData& connector : connectors)
+        {
+            // Default setpoint is max current per connector
+            connector.ocpp_setpoint = connector.max_setpoint;
 
-        if (connector.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
-        {
-            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::A;
-        }
-        else
-        {
-            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::W;
-        }
-
-        // Get the smart charging setpoint
-        if (charge_point.getSetpoint(connector.id, charge_point_setpoint, connector_setpoint, charge_point_rate_unit_type))
-        {
-            // Apply setpoints
-            if (charge_point_setpoint.isSet())
+            if (connector.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
             {
-                if (charge_point_setpoint.value().value < whole_charge_point_setpoint)
-                {
-                    whole_charge_point_setpoint = charge_point_setpoint.value().value;
-                }
+                charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::A;
             }
-            if (connector_setpoint.isSet())
+            else
             {
-                if (connector_setpoint.value().value < connector.max_setpoint)
+                charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::W;
+            }
+
+            // Get the smart charging setpoint
+            if (charge_point.getSetpoint(connector.id, charge_point_setpoint, connector_setpoint, charge_point_rate_unit_type))
+            {
+                // Apply setpoints
+                if (charge_point_setpoint.isSet())
                 {
-                    connector.ocpp_setpoint = connector_setpoint.value().value;
+                    if (charge_point_setpoint.value().value < whole_charge_point_setpoint)
+                    {
+                        whole_charge_point_setpoint = charge_point_setpoint.value().value;
+                    }
+                }
+                if (connector_setpoint.isSet())
+                {
+                    if (connector_setpoint.value().value < connector.max_setpoint)
+                    {
+                        connector.ocpp_setpoint = connector_setpoint.value().value;
+                    }
                 }
             }
         }
