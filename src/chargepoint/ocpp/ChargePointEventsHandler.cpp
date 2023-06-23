@@ -32,6 +32,7 @@ SOFTWARE.
 #include <openocpp/PrivateKey.h>
 #include <openocpp/Sha2.h>
 #include <openocpp/StringHelpers.h>
+#include <thread>
 
 // With MSVC compiler, the system() call returns directly the command's return value
 #ifdef _MSC_VER
@@ -449,6 +450,10 @@ std::string ChargePointEventsHandler::updateFirmwareRequested()
 void ChargePointEventsHandler::installFirmware(const std::string& firmware_file)
 {
     cout << "Firmware to install : " << firmware_file << endl;
+    std::thread response_thread= std::thread([&]{
+        std::this_thread::sleep_for(5s);
+    m_chargepoint->notifyFirmwareUpdateStatus(true);});
+    response_thread.detach();
 }
 
 /** @copydoc bool IChargePointEventsHandler::uploadFile(const std::string&, const std::string&) */
