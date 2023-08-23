@@ -235,39 +235,50 @@ int main(int argc, char* argv[])
     config.setStackConfigValue("ChargePointIdentifier", chargepoint_id);
     config.setStackConfigValue("ChargePointSerialNumber", serial_number);
     config.setOcppConfigValue("NumberOfConnectors", std::to_string(nb_connectors));
-    if (nb_phases == 1u)
-    {
-        config.setOcppConfigValue("ConnectorPhaseRotation", "NotApplicable");
-    }
-    else if (nb_phases == 2u)
-    {
-        config.setOcppConfigValue("ConnectorPhaseRotation", "1.RST,2.RST");
-    }
-    else
-    {
-        config.setOcppConfigValue("ConnectorPhaseRotation", "1.RST,2.RST,3.RST");
-    }
-    config.setMqttConfigValue("BrokerUrl", mqtt_broker_url);
 
-    ConnectorData::ConnectorType cp_current_out_type  = ConnectorData::ConnectorTypeHelper.fromString(chargepoint_type);
-    
-    if (cp_current_out_type  == ConnectorData::ConnectorType::AC)
+    ConnectorData::ConnectorType cp_current_out_type = ConnectorData::ConnectorTypeHelper.fromString(chargepoint_type);
+
+    if (cp_current_out_type == ConnectorData::ConnectorType::AC)
     {
         config.setOcppConfigValue("MeterValuesSampledData", "Current.Import,Energy.Active.Import.Register,Current.Offered");
         config.setOcppConfigValue("ChargingScheduleAllowedChargingRateUnit", "Current");
     }
     else
     {
-        config.setOcppConfigValue("MeterValuesSampledData", "Energy.Active.Import.Register,Power.Active.Import,Power.Factor,Voltage,Power.Offered");
+        config.setOcppConfigValue("MeterValuesSampledData",
+                                  "Energy.Active.Import.Register,Power.Active.Import,Power.Factor,Voltage,Power.Offered");
         config.setOcppConfigValue("ChargingScheduleAllowedChargingRateUnit", "Power");
     }
+
+    config.setOcppConfigValue("ConnectorPhaseRotationMaxLength", std::to_string(nb_connectors));
+    std::stringstream connector_phase_rotation;
+    for (unsigned int i = 1; i <= nb_connectors; i++)
+    {
+        connector_phase_rotation << i << ".";
+        if ((cp_current_out_type == ConnectorData::ConnectorType::DC) || (nb_phases == 1u))
+        {
+            connector_phase_rotation << "NotApplicable";
+        }
+        else
+        {
+            connector_phase_rotation << "RST";
+        }
+        if (i != nb_connectors)
+        {
+            connector_phase_rotation << ",";
+        }
+    }
+    config.setOcppConfigValue("ConnectorPhaseRotation", connector_phase_rotation.str());
+
+    config.setMqttConfigValue("BrokerUrl", mqtt_broker_url);
 
     if (!vendor_name.empty())
     {
         config.setStackConfigValue("ChargePointVendor", vendor_name);
     }
 
-    if (operating_voltage != 0) {
+    if (operating_voltage != 0)
+    {
         config.setStackConfigValue("OperatingVoltage", std::to_string(operating_voltage));
     }
 
