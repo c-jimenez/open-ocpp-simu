@@ -31,6 +31,7 @@ SOFTWARE.
 #include <iostream>
 #include <signal.h>
 #include <sstream>
+#include <thread>
 
 #ifdef _MSC_VER
 #include <Windows.h>
