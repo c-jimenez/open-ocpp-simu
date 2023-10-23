@@ -183,6 +183,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(currents[phase]);
                         value.phase = static_cast<Phase>(phase);
+                        value.unit.value() = UnitOfMeasure::A;
                         meter_value.sampledValue.push_back(value);
                     }
                     else
@@ -196,6 +197,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(currents[i]);
                         value.phase = static_cast<Phase>(i);
+                        value.unit.value() = UnitOfMeasure::A;
                         meter_value.sampledValue.push_back(value);
                     }
                 }
@@ -206,6 +208,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
             {
                 auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
                 value.value   = std::to_string(static_cast<unsigned int>(setpoint));
+                value.unit.value() = UnitOfMeasure::A;
                 meter_value.sampledValue.push_back(value);
             }
             break;
@@ -214,6 +217,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
             {
                 auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
                 value.value   = std::to_string(static_cast<unsigned int>(setpoint));
+                value.unit.value() = UnitOfMeasure::W;
                 meter_value.sampledValue.push_back(value);
             }
             break;
@@ -236,6 +240,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(powers[phase]);
                         value.phase = static_cast<Phase>(phase);
+                        value.unit.value() = UnitOfMeasure::W;
                         meter_value.sampledValue.push_back(value);
                     }
                     else
@@ -249,6 +254,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(powers[i]);
                         value.phase = static_cast<Phase>(i);
+                        value.unit.value() = UnitOfMeasure::W;
                         meter_value.sampledValue.push_back(value);
                     }
                 }
@@ -273,6 +279,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(voltages[phase]);
                         value.phase = static_cast<Phase>(phase);
+                        value.unit.value() = UnitOfMeasure::V;
                         meter_value.sampledValue.push_back(value);
                     }
                     else
@@ -286,6 +293,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(voltages[i]);
                         value.phase = static_cast<Phase>(i);
+                        value.unit.value() = UnitOfMeasure::V;
                         meter_value.sampledValue.push_back(value);
                     }
                 }
