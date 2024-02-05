@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install build-essential clang cmake python3 python
 
 RUN git clone https://github.com/c-jimenez/open-ocpp.git
 
-RUN cd open-ocpp && git fetch --tags && git checkout v1.4.1 && make gcc && make install-gcc
+RUN cd open-ocpp && git fetch --tags && git checkout fix/status_notif && make gcc && make install-gcc
 
 RUN apt-get update && apt-get install pkg-config &&  apt-get -q autoremove  &&  rm -rf "/var/lib/apt/lists/*"
 
