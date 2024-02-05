@@ -11,12 +11,12 @@ ARG gid=1000
 RUN echo "APT::Get::Assume-Yes "true";" >> /etc/apt/apt.conf.d/aptconf
 
 
-RUN apt-get update && apt-get install build-essential clang cmake python3 python3-pip python3-venv wget libpaho-mqtt-dev git openssl libssl-dev sqlite3 libsqlite3-dev zip curl \
+RUN apt-get update && apt-get install build-essential clang cmake python3 python3-pip python3-venv wget libpaho-mqtt-dev git openssl libssl-dev sqlite3 libsqlite3-dev zip curl tcpdump libcap2-bin\
 &&  apt-get -q autoremove  &&  rm -rf "/var/lib/apt/lists/*"
 
 RUN git clone https://github.com/c-jimenez/open-ocpp.git
 
-RUN cd open-ocpp && git fetch --tags && git checkout v1.2.0 && make gcc && make install-gcc
+RUN cd open-ocpp && git fetch --tags && git checkout fix/status_notif && make gcc && make install-gcc
 
 RUN apt-get update && apt-get install pkg-config &&  apt-get -q autoremove  &&  rm -rf "/var/lib/apt/lists/*"
 

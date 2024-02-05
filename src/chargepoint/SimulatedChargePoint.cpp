@@ -37,14 +37,16 @@ SOFTWARE.
 using namespace ocpp::types;
 
 /** @brief Constructor */
-SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig& config,
-                                           unsigned int                max_charge_point_current,
-                                           unsigned int                max_connector_current,
-                                           unsigned int                nb_phases)
+SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
+                                           unsigned int                 max_charge_point_setpoint,
+                                           unsigned int                 max_connector_setpoint,
+                                           unsigned int                 nb_phases,
+                                           ConnectorData::ConnectorType chargepoint_type)
     : m_config(config),
-      m_max_charge_point_current(static_cast<float>(max_charge_point_current)),
-      m_max_connector_current(static_cast<float>(max_connector_current)),
-      m_nb_phases(nb_phases)
+      m_max_charge_point_setpoint(static_cast<float>(max_charge_point_setpoint)),
+      m_max_connector_setpoint(static_cast<float>(max_connector_setpoint)),
+      m_nb_phases(nb_phases),
+      m_charge_point_type(chargepoint_type)
 {
 }
 
@@ -60,38 +62,48 @@ void SimulatedChargePoint::start()
     // MQTT connectivity
     std::cout << "Starting MQTT connectivity..." << std::endl;
     MqttManager mqtt(m_config);
-    std::thread mqtt_thread([&mqtt, this] { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_current)); });
+    std::thread mqtt_thread([&mqtt, this] { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_setpoint), m_charge_point_type); });;
 
     // OCPP connectivity
     std::cout << "Starting OCPP connectivity..." << std::endl;
     ChargePointEventsHandler                         event_handler(m_config);
     std::unique_ptr<ocpp::chargepoint::IChargePoint> charge_point =
         ocpp::chargepoint::IChargePoint::create(m_config.stackConfig(), m_config.ocppConfig(), event_handler);
+    event_handler.setChargePoint(*charge_point);
 
     // Allocated data for each connector
     std::vector<MeterSimulator*> meters(m_config.ocppConfig().numberOfConnectors());
     std::vector<ConnectorData>   connectors(meters.size());
     std::vector<float>           voltages(m_nb_phases);
     voltages.assign(voltages.size(), m_config.stackConfig().operatingVoltage());
+    float                        power_factor(m_config.powerFactor());
     for (unsigned int i = 0; i < connectors.size(); i++)
     {
         connectors[i].id           = i + 1u;
-        connectors[i].meter        = new MeterSimulator(charge_point->getTimerPool(), m_nb_phases);
-        connectors[i].max_setpoint = m_max_connector_current;
+        connectors[i].meter        = new MeterSimulator(charge_point->getTimerPool(), m_nb_phases, m_charge_point_type);
+        connectors[i].max_setpoint = m_max_connector_setpoint;
         meters[i]                  = connectors[i].meter;
         meters[i]->setVoltages(voltages);
+        meters[i]->setPowerFactor(power_factor);
         meters[i]->start();
     }
     event_handler.setConnectors(connectors);
 
-    // Start OCPP
-    charge_point->start();
+    do
+    {
+        // Start OCPP
+        event_handler.clearResetPending();
+        charge_point->start();
 
-    // Control loop
-    loop(mqtt, *charge_point.get(), event_handler, connectors);
+        // Control loop
+        std::cout << "Start loop OCPP" << std::endl;
+        loop(mqtt, *charge_point.get(), event_handler, connectors);
 
-    // Stop OCPP
-    charge_point->stop();
+        // Stop OCPP
+        std::cout << "Stop CP" << std::endl;
+        charge_point->stop();
+    } while (event_handler.isResetPending());
+
     for (MeterSimulator*& meter : meters)
     {
         meter->stop();
@@ -118,7 +130,8 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
     do
     {
         // Wait for registration with the Central System
-        while (!mqtt.isEndOfApplication() && (charge_point.getRegistrationStatus() != RegistrationStatus::Accepted))
+        while (!mqtt.isEndOfApplication() && !event_handler.isResetPending() &&
+               (charge_point.getRegistrationStatus() != RegistrationStatus::Accepted))
         {
             // New chargepoint status
             bool               connected = event_handler.isConnected();
@@ -140,7 +153,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
             }
             if (!status_published)
             {
-                status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_current);
+                status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type);
             }
 
             // Publish connectors status
@@ -169,7 +182,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
         }
         if (!status_published)
         {
-            status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_current);
+            status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type);
         }
 
         // Update connector statuses
@@ -463,8 +476,8 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                 break;
             }
 
-            // Compute current consumption
-            computeCurrentConsumption(connector);
+            // Compute consumption (Current for AC, Power for DC)
+            computeConsumption(connector);
         }
 
         // Publish connectors status
@@ -472,7 +485,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
 
         // Polling period
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    } while (!mqtt.isEndOfApplication());
+    } while (!mqtt.isEndOfApplication() && !event_handler.isResetPending());
 }
 
 /** @brief Check if a valid id tag has been presented (locally or remotely) */
@@ -573,9 +586,10 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
 {
     Optional<SmartChargingSetpoint> charge_point_setpoint;
     Optional<SmartChargingSetpoint> connector_setpoint;
+    ocpp::types::ChargingRateUnitType charge_point_rate_unit_type;
 
     // Default setpoint is max current
-    float whole_charge_point_setpoint = m_max_charge_point_current;
+    float whole_charge_point_setpoint = m_max_charge_point_setpoint;
 
     // Get the smart charging setpoint for each connectors
     for (ConnectorData& connector : connectors)
@@ -583,8 +597,17 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
         // Default setpoint is max current per connector
         connector.ocpp_setpoint = connector.max_setpoint;
 
+        if (connector.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
+        {
+            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::A;
+        }
+        else
+        {
+            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::W;
+        }
+
         // Get the smart charging setpoint
-        if (charge_point.getSetpoint(connector.id, charge_point_setpoint, connector_setpoint))
+        if (charge_point.getSetpoint(connector.id, charge_point_setpoint, connector_setpoint, charge_point_rate_unit_type))
         {
             // Apply setpoints
             if (charge_point_setpoint.isSet())
@@ -648,8 +671,8 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
     }
 }
 
-/** @brief Compute the current consumption for each connector */
-void SimulatedChargePoint::computeCurrentConsumption(ConnectorData& connector)
+/** @brief Compute the consumption (current or power) for each connector */
+void SimulatedChargePoint::computeConsumption(ConnectorData& connector)
 {
     // Default is no consumption
     float consumption_l1 = 0.f;
@@ -684,9 +707,9 @@ void SimulatedChargePoint::computeCurrentConsumption(ConnectorData& connector)
     }
 
     // Apply consumption in the meter
-    std::vector<float> currents;
-    currents.push_back(consumption_l1);
-    currents.push_back(consumption_l2);
-    currents.push_back(consumption_l3);
-    connector.meter->setCurrents(currents);
+    std::vector<float> consumptions;
+    consumptions.push_back(consumption_l1);
+    consumptions.push_back(consumption_l2);
+    consumptions.push_back(consumption_l3);
+    connector.meter->setConsumptions(consumptions);
 }

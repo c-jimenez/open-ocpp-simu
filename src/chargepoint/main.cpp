@@ -31,9 +31,9 @@ SOFTWARE.
 
 #include <chrono>
 #include <iostream>
+#include <set>
 #include <string.h>
 #include <thread>
-#include <set>
 
 using namespace std;
 
@@ -65,16 +65,19 @@ class Listener : public IMqttClient::IListener
 int main(int argc, char* argv[])
 {
     // Default parameters
-    std::string  working_dir              = "";
-    std::string  connection_url           = "";
-    std::string  chargepoint_id           = "";
-    std::string  serial_number            = "";
-    unsigned int nb_connectors            = 1u;
-    unsigned int nb_phases                = 3u;
-    std::string  mqtt_broker_url          = "tcp://localhost:1883";
-    unsigned int max_charge_point_current = 32u;
-    unsigned int max_connector_current    = 32u;
-    std::set<std::string> diag_files     = {"ocpp.db"};
+    std::string           working_dir               = "";
+    std::string           connection_url            = "";
+    std::string           chargepoint_id            = "";
+    std::string           serial_number             = "";
+    unsigned int          nb_connectors             = 1u;
+    unsigned int          nb_phases                 = 3u;
+    std::string           mqtt_broker_url           = "tcp://localhost:1883";
+    unsigned int          max_charge_point_setpoint = 32u;
+    unsigned int          max_connector_setpoint    = 32u;
+    std::set<std::string> diag_files                = {"ocpp.db"};
+    std::string           chargepoint_type          = "AC";
+    std::string           vendor_name               = "";
+    unsigned int          operating_voltage         = 0u;
 
     // Check parameters
     if (argc > 1)
@@ -134,13 +137,13 @@ int main(int argc, char* argv[])
             {
                 argv++;
                 argc--;
-                max_charge_point_current = static_cast<unsigned int>(std::atoi(*argv));
+                max_charge_point_setpoint = static_cast<unsigned int>(std::atoi(*argv));
             }
             else if ((strcmp(*argv, "-i") == 0) && (argc > 1))
             {
                 argv++;
                 argc--;
-                max_connector_current = static_cast<unsigned int>(std::atoi(*argv));
+                max_connector_setpoint = static_cast<unsigned int>(std::atoi(*argv));
             }
             else if ((strcmp(*argv, "-f") == 0) && (argc > 1))
             {
@@ -148,12 +151,37 @@ int main(int argc, char* argv[])
                 argc--;
                 // add all files in diag file list:
                 diag_files.insert(*argv);
-                while((argc > 2) && (*argv[1] != '-'))
+                while ((argc > 2) && (*argv[1] != '-'))
                 {
                     argv++;
                     argc--;
                     diag_files.insert(*argv);
                 }
+            }
+            else if ((strcmp(*argv, "-e") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                chargepoint_type = *argv;
+            }
+            else if ((strcmp(*argv, "-v") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                vendor_name = *argv;
+                while ((argc > 2) && (*argv[1] != '-'))
+                {
+                    argv++;
+                    argc--;
+                    vendor_name += " ";
+                    vendor_name += *argv;
+                }
+            }
+            else if ((strcmp(*argv, "-o") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                operating_voltage = static_cast<unsigned int>(std::atoi(*argv));
             }
             else
             {
@@ -171,7 +199,8 @@ int main(int argc, char* argv[])
             {
                 std::cout << "Invalid parameter : " << param << std::endl;
             }
-            std::cout << "Usage : chargepoint -w working_dir -t connection_url -c chargepoint_id -s serial_number [-n nb_connectors] [-p "
+            std::cout << "Usage : chargepoint -w working_dir -t connection_url -c chargepoint_id -s serial_number [-n "
+                         "nb_connectors] [-p "
                          "nb_phases] [-b mqtt_broker_url]"
                       << std::endl;
             std::cout << "    -w : Working directory where to store the persistant data" << std::endl;
@@ -181,10 +210,14 @@ int main(int argc, char* argv[])
             std::cout << "    -n : Number of connectors (Default = 1)" << std::endl;
             std::cout << "    -p : Number of phases (Default = 3)" << std::endl;
             std::cout << "    -b : URL of the MQTT broker (Default = tcp://localhost:1883)" << std::endl;
-            std::cout << "    -m : Max current in A for the whole Charge Point (Default = 32A)" << std::endl;
-            std::cout << "    -i : Max current in A for a connector of the Charge Point (Default = 32A)" << std::endl;
+            std::cout << "    -m : Max setpoint (in A for AC, in W for DC) for the whole Charge Point (Default = 32A)" << std::endl;
+            std::cout << "    -i : Max setpoint (in A for AC, in W for DC) for a connector of the Charge Point (Default = 32A)"
+                      << std::endl;
+            std::cout << "    -e : Charge Point's type (AC/DC) (Default = AC)" << std::endl;
+            std::cout << "    -v : Vendor name (Default = OpenOCPP)" << std::endl;
+            std::cout << "    -o : Operating voltage (Default = 230)" << std::endl;
             std::cout << "    -f : Files to put in diagnostic zip. Absolute path or relative path from working directory. " << std::endl;
-            std::cout <<          "Default = [ocpp.db]" << std::endl;
+            std::cout << "         (Default = ocpp.db)" << std::endl;
             return 1;
         }
     }
@@ -202,53 +235,56 @@ int main(int argc, char* argv[])
     config.setStackConfigValue("ChargePointIdentifier", chargepoint_id);
     config.setStackConfigValue("ChargePointSerialNumber", serial_number);
     config.setOcppConfigValue("NumberOfConnectors", std::to_string(nb_connectors));
-    if (nb_phases == 1u)
+
+    ConnectorData::ConnectorType cp_current_out_type = ConnectorData::ConnectorTypeHelper.fromString(chargepoint_type);
+
+    if (cp_current_out_type == ConnectorData::ConnectorType::AC)
     {
-        config.setOcppConfigValue("ConnectorPhaseRotation", "NotApplicable");
-    }
-    else if (nb_phases == 2u)
-    {
-        config.setOcppConfigValue("ConnectorPhaseRotation", "1.RST,2.RST");
+        config.setOcppConfigValue("MeterValuesSampledData", "Current.Import,Energy.Active.Import.Register,Current.Offered");
+        config.setOcppConfigValue("ChargingScheduleAllowedChargingRateUnit", "Current");
     }
     else
     {
-        config.setOcppConfigValue("ConnectorPhaseRotation", "1.RST,2.RST,3.RST");
+        config.setOcppConfigValue("MeterValuesSampledData",
+                                  "Energy.Active.Import.Register,Power.Active.Import,Power.Factor,Voltage,Power.Offered");
+        config.setOcppConfigValue("ChargingScheduleAllowedChargingRateUnit", "Power");
     }
+
+    config.setOcppConfigValue("ConnectorPhaseRotationMaxLength", std::to_string(nb_connectors));
+    std::stringstream connector_phase_rotation;
+    for (unsigned int i = 1; i <= nb_connectors; i++)
+    {
+        connector_phase_rotation << i << ".";
+        if ((cp_current_out_type == ConnectorData::ConnectorType::DC) || (nb_phases == 1u))
+        {
+            connector_phase_rotation << "NotApplicable";
+        }
+        else
+        {
+            connector_phase_rotation << "RST";
+        }
+        if (i != nb_connectors)
+        {
+            connector_phase_rotation << ",";
+        }
+    }
+    config.setOcppConfigValue("ConnectorPhaseRotation", connector_phase_rotation.str());
+
     config.setMqttConfigValue("BrokerUrl", mqtt_broker_url);
 
-    // Start simulated charge point
-    SimulatedChargePoint chargepoint(config, max_charge_point_current, max_connector_current, nb_phases);
-    chargepoint.start();
-
-    Listener listener;
-
-    client = IMqttClient::create(chargepoint_id);
-
-    client->registerListener(listener);
-    client->setWill("/ocpp/simu/chargepoints/disconnect", "I'm dead!");
-
-    if (client->connect(mqtt_broker_url))
+    if (!vendor_name.empty())
     {
-        cout << "Connected!" << endl;
-
-        client->publish("/ocpp/simu/chargepoints/status", "up 1!", IMqttClient::QoS::QOS_0, true);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        config.setStackConfigValue("ChargePointVendor", vendor_name);
     }
 
-    client->close();
+    if (operating_voltage != 0)
+    {
+        config.setStackConfigValue("OperatingVoltage", std::to_string(operating_voltage));
+    }
 
-    // Event handler
-    ChargePointEventsHandler event_handler(config);
-
-    // Instanciate charge point
-    std::unique_ptr<ocpp::chargepoint::IChargePoint> charge_point =
-        ocpp::chargepoint::IChargePoint::create(config.stackConfig(), config.ocppConfig(), event_handler);
-
-    event_handler.setChargePoint(*charge_point.get());
-    charge_point->start();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(30000));
+    // Start simulated charge point
+    SimulatedChargePoint chargepoint(config, max_charge_point_setpoint, max_connector_setpoint, nb_phases, cp_current_out_type);
+    chargepoint.start();
 
     return 0;
 }

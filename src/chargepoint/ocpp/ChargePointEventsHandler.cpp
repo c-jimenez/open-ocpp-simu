@@ -26,12 +26,13 @@ SOFTWARE.
 #include "MeterSimulator.h"
 #include "SimulatedChargePointConfig.h"
 
+#include <fstream>
+#include <iostream>
 #include <openocpp/CertificateRequest.h>
 #include <openocpp/PrivateKey.h>
 #include <openocpp/Sha2.h>
 #include <openocpp/StringHelpers.h>
-#include <fstream>
-#include <iostream>
+#include <thread>
 
 // With MSVC compiler, the system() call returns directly the command's return value
 #ifdef _MSC_VER
@@ -51,7 +52,8 @@ ChargePointEventsHandler::ChargePointEventsHandler(SimulatedChargePointConfig& c
       m_remote_start_pending(config.ocppConfig().numberOfConnectors()),
       m_remote_stop_pending(m_remote_start_pending.size()),
       m_remote_start_id_tag(m_remote_start_pending.size()),
-      m_is_connected(false)
+      m_is_connected(false),
+      m_reset_pending(false)
 {
     for (unsigned int i = 0; i < m_remote_start_pending.size(); i++)
     {
@@ -95,19 +97,22 @@ ocpp::types::AvailabilityStatus ChargePointEventsHandler::changeAvailabilityRequ
 {
     AvailabilityStatus ret = AvailabilityStatus::Accepted;
     cout << "Change availability requested : " << connector_id << " - " << AvailabilityTypeHelper.toString(availability) << endl;
-    ConnectorData& connector = m_connectors->at(connector_id - 1u);
-    if (availability == AvailabilityType::Inoperative)
+    if (connector_id > 0)
     {
-        if ((connector.status != ChargePointStatus::Available) && (connector.status != ChargePointStatus::Reserved) &&
-            (connector.status != ChargePointStatus::Faulted))
+        ConnectorData& connector = m_connectors->at(connector_id - 1u);
+        if (availability == AvailabilityType::Inoperative)
         {
-            connector.unavailable_pending = true;
-            ret                           = AvailabilityStatus::Scheduled;
+            if ((connector.status != ChargePointStatus::Available) && (connector.status != ChargePointStatus::Reserved) &&
+                (connector.status != ChargePointStatus::Faulted))
+            {
+                connector.unavailable_pending = true;
+                ret                           = AvailabilityStatus::Scheduled;
+            }
         }
-    }
-    else
-    {
-        connector.unavailable_pending = false;
+        else
+        {
+            connector.unavailable_pending = false;
+        }
     }
 
     return ret;
@@ -170,7 +175,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
         {
             case Measurand::CurrentImport:
             {
-                auto currents = meter_simulator->getCurrents();
+                auto currents = meter_simulator->getConsumptions();
                 if (measurand.second.isSet())
                 {
                     unsigned int phase = static_cast<unsigned int>(measurand.second.value());
@@ -178,6 +183,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(currents[phase]);
                         value.phase = static_cast<Phase>(phase);
+                        value.unit.value() = UnitOfMeasure::A;
                         meter_value.sampledValue.push_back(value);
                     }
                     else
@@ -191,6 +197,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(currents[i]);
                         value.phase = static_cast<Phase>(i);
+                        value.unit.value() = UnitOfMeasure::A;
                         meter_value.sampledValue.push_back(value);
                     }
                 }
@@ -201,6 +208,16 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
             {
                 auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
                 value.value   = std::to_string(static_cast<unsigned int>(setpoint));
+                value.unit.value() = UnitOfMeasure::A;
+                meter_value.sampledValue.push_back(value);
+            }
+            break;
+
+            case Measurand::PowerOffered:
+            {
+                auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
+                value.value   = std::to_string(static_cast<unsigned int>(setpoint));
+                value.unit.value() = UnitOfMeasure::W;
                 meter_value.sampledValue.push_back(value);
             }
             break;
@@ -223,6 +240,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(powers[phase]);
                         value.phase = static_cast<Phase>(phase);
+                        value.unit.value() = UnitOfMeasure::W;
                         meter_value.sampledValue.push_back(value);
                     }
                     else
@@ -236,9 +254,18 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(powers[i]);
                         value.phase = static_cast<Phase>(i);
+                        value.unit.value() = UnitOfMeasure::W;
                         meter_value.sampledValue.push_back(value);
                     }
                 }
+            }
+            break;
+
+            case Measurand::PowerFactor:
+            {
+                value.value = std::to_string(meter_simulator->getPowerFactor());
+                value.phase = ocpp::types::Optional<Phase>();
+                meter_value.sampledValue.push_back(value);
             }
             break;
 
@@ -252,6 +279,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(voltages[phase]);
                         value.phase = static_cast<Phase>(phase);
+                        value.unit.value() = UnitOfMeasure::V;
                         meter_value.sampledValue.push_back(value);
                     }
                     else
@@ -265,6 +293,7 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     {
                         value.value = std::to_string(voltages[i]);
                         value.phase = static_cast<Phase>(i);
+                        value.unit.value() = UnitOfMeasure::V;
                         meter_value.sampledValue.push_back(value);
                     }
                 }
@@ -285,10 +314,28 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
 /** @copydoc bool IChargePointEventsHandler::remoteStartTransactionRequested(unsigned int, const std::string&) */
 bool ChargePointEventsHandler::remoteStartTransactionRequested(unsigned int connector_id, const std::string& id_tag)
 {
+    bool ret = false;
     cout << "Remote start transaction : " << connector_id << " - " << id_tag << endl;
-    m_remote_start_pending[connector_id - 1u] = true;
-    m_remote_start_id_tag[connector_id - 1u]  = id_tag;
-    return true;
+    if (connector_id != 0)
+    {
+        m_remote_start_pending[connector_id - 1u] = true;
+        m_remote_start_id_tag[connector_id - 1u]  = id_tag;
+        ret                                       = true;
+    }
+    else
+    {
+        for (size_t i = 1; i <= m_config.ocppConfig().numberOfConnectors(); i++)
+        {
+            if (m_chargepoint->getConnectorStatus(i) < ChargePointStatus::Charging)
+            {
+                m_remote_start_pending[i - 1u] = true;
+                m_remote_start_id_tag[i - 1u]  = id_tag;
+                ret                            = true;
+                break;
+            }
+        }
+    }
+    return ret;
 }
 
 /** @copydoc bool IChargePointEventsHandler::remoteStopTransactionRequested(unsigned int) */
@@ -310,34 +357,49 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
                                                            unsigned int                   duration,
                                                            ocpp::types::ChargingSchedule& schedule)
 {
+    bool ret = false;
+
     cout << "Local limitations schedule requested : " << connector_id << " - " << duration << endl;
 
-    // Connector data
-    ConnectorData& connector_data = m_connectors->at(connector_id - 1);
-
-    // 1 period
-    // local limitation = min of connector capacity and cable plugged
-    ChargingSchedulePeriod period;
-    if ((connector_data.status >= ChargePointStatus::Charging) && (connector_data.status < ChargePointStatus::Finishing))
+    if (connector_id > 0)
     {
-        period.limit = std::min(connector_data.max_setpoint, connector_data.car_cable_capacity);
-    }
-    else
-    {
-        period.limit = connector_data.max_setpoint;
-    }
-    period.numberPhases       = connector_data.meter->getNumberOfPhases();
-    period.startPeriod        = 0;
-    schedule.chargingRateUnit = ChargingRateUnitType::A;
-    schedule.chargingSchedulePeriod.push_back(period);
+        // Connector data
+        ConnectorData& connector_data = m_connectors->at(connector_id - 1);
 
-    return true;
+        // 1 period
+        // local limitation = min of connector capacity and cable plugged
+        ChargingSchedulePeriod period;
+        if ((connector_data.status >= ChargePointStatus::Charging) && (connector_data.status < ChargePointStatus::Finishing))
+        {
+            period.limit = std::min(connector_data.max_setpoint, connector_data.car_cable_capacity);
+        }
+        else
+        {
+            period.limit = connector_data.max_setpoint;
+        }
+        period.numberPhases       = connector_data.meter->getNumberOfPhases();
+        period.startPeriod        = 0;
+        if (connector_data.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
+        {
+            schedule.chargingRateUnit = ChargingRateUnitType::A;
+        }
+        else
+        {
+            schedule.chargingRateUnit = ChargingRateUnitType::W;
+        }
+        schedule.chargingSchedulePeriod.push_back(period);
+
+        ret = true;
+    }
+
+    return ret;
 }
 
 /** @copydoc bool IChargePointEventsHandler::resetRequested(ocpp::types::ResetType) */
 bool ChargePointEventsHandler::resetRequested(ocpp::types::ResetType reset_type)
 {
     cout << "Reset requested : " << ResetTypeHelper.toString(reset_type) << endl;
+    m_reset_pending = true;
     return true;
 }
 
@@ -362,16 +424,20 @@ std::string ChargePointEventsHandler::getDiagnostics(const ocpp::types::Optional
     std::stringstream ss;
     ss << "zip " << diag_file;
 
-    for (auto filename : m_config.diagFiles()) {
+    for (auto filename : m_config.diagFiles())
+    {
         std::string filepath = filename;
-        if (filepath[0] != '/') {
+        if (filepath[0] != '/' && !m_config.workingDir().empty())
+        {
             filepath = m_config.workingDir() + "/" + filepath;
         }
         if (std::filesystem::exists(filepath))
         {
             ss << " " << filepath;
-        } else {
-             cout << "Unable to add file " << filepath << " in diagnostic zip: not found" << endl;
+        }
+        else
+        {
+            cout << "Unable to add file " << filepath << " in diagnostic zip: not found" << endl;
         }
     }
 
@@ -392,6 +458,10 @@ std::string ChargePointEventsHandler::updateFirmwareRequested()
 void ChargePointEventsHandler::installFirmware(const std::string& firmware_file)
 {
     cout << "Firmware to install : " << firmware_file << endl;
+    std::thread response_thread= std::thread([&]{
+        std::this_thread::sleep_for(5s);
+    m_chargepoint->notifyFirmwareUpdateStatus(true);});
+    response_thread.detach();
 }
 
 /** @copydoc bool IChargePointEventsHandler::uploadFile(const std::string&, const std::string&) */

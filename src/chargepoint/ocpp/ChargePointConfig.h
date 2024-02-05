@@ -113,6 +113,9 @@ class ChargePointConfig : public ocpp::config::IChargePointConfig
     /** @brief Nominal operating voltage (needed for Watt to Amp conversions in smart charging profiles) */
     float operatingVoltage() const override { return static_cast<float>(getFloat("OperatingVoltage")); }
 
+    // /** @brief power factor of total energy flow */
+    float powerFactor()  { return static_cast<float>(getFloat("PowerFactor")); }
+
     // Authent
 
     /** @brief Maximum number of entries in the authentication cache */
