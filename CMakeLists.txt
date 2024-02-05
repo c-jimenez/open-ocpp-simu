@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 
-project(OCPPChargePointsSimulator DESCRIPTION "OCPP Charge Points simulator" VERSION 1.0.0)
+project(OCPPChargePointsSimulator DESCRIPTION "OCPP Charge Points simulator" VERSION 1.2.0)
 
 # Build options
 include(CMakeLists_Options.txt)

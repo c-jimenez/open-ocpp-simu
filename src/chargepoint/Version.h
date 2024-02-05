@@ -26,6 +26,6 @@ SOFTWARE.
 #define VERSION_H
 
 /** @brief Firmware version of the simulated charge point */
-#define CHARGEPOINT_FW_VERSION "1.1.0"
+#define CHARGEPOINT_FW_VERSION "1.2.0"
 
 #endif // VERSION_H
