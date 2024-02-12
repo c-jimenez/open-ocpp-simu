@@ -98,6 +98,7 @@ class SupervisorScreen(BoxLayout):
                 cp.model = content.model
                 cp.serial = content.serial
                 cp.nb_phases = content.nb_phases
+                cp.smart_charge_enabled = content.smart_charge_enabled
                 if cp.type == "DC":
                     cp.max_setpoint = content.max_setpoint * 1000 # Convert from Kw to W
                 else:
@@ -118,7 +119,7 @@ class SupervisorScreen(BoxLayout):
         content = NewChargePointWidget()
         popup = Popup(title='New simulated charge point',
                       content=content,
-                      size_hint=(None, None), size=(510, 560),
+                      size_hint=(None, None), size=(430, 600),
                       auto_dismiss=False)
         content.popup = popup
         popup.bind(on_dismiss=popup_callback)

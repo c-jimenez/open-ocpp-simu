@@ -44,12 +44,14 @@ class SimulatedChargePoint
      * @param max_charge_point_setpoint Max setpoint (in A for AC, in W forDC) for the whole Charge Point
      * @param max_connector_setpoint Max setpoint (in A for AC, in W forDC) for a connector of the Charge Point
      * @param nb_phases Number of phases alimenting the Charge Point
+     * @param smart_charge_enabled Smart Charge enabled (true/false)
      */
     SimulatedChargePoint(SimulatedChargePointConfig&  config,
                          unsigned int                 max_charge_point_setpoint,
                          unsigned int                 max_connector_setpoint,
                          unsigned int                 nb_phases,
-                         ConnectorData::ConnectorType chargepoint_type);
+                         ConnectorData::ConnectorType chargepoint_type,
+                         bool                         smart_charge_enabled);
 
     /** @brief Destructor */
     virtual ~SimulatedChargePoint();
@@ -69,6 +71,8 @@ class SimulatedChargePoint
     unsigned int m_nb_phases;
     /** @brief The Charge Point type (AC/DC) */
     ConnectorData::ConnectorType m_charge_point_type;
+    /** @brief Smart Charge enabled (true/false) */
+    bool m_smart_charge_enabled;
 
 
     /** @brief Control loop */

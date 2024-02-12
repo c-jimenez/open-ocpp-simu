@@ -92,6 +92,8 @@ class ChargePoint(object):
         self.central_system = ""
         # Operating voltage
         self.voltage = 0
+        # Smart charge enable (true/false)
+        self.smart_charge_enabled = True
 
 
 class ChargePointManager(object):
@@ -411,6 +413,7 @@ class ChargePointManager(object):
         cp_dict["nb_connectors"] = len(cp.connectors)
         cp_dict["max_setpoint"] = int(cp.max_setpoint)
         cp_dict["voltage"] = cp.voltage
+        cp_dict["smart_charge_enabled"] = cp.smart_charge_enabled
         if len(cp.connectors) > 0:
             cp_dict["max_setpoint_per_connector"] = int(
                 cp.connectors[1].max_setpoint)

@@ -37,12 +37,13 @@
     nb_connectors: sl_nb_connectors.value
     central_system: ti_central_system.text
     operating_voltage: sl_operating_voltage.value
+    smart_charge_enabled: ch_smart_charge_enabled.active
 
     cancel: False
     popup: None
 
     size_hint: None, None
-    size: 400, 400
+    size: 400, 440
     
 
     BoxLayout:
@@ -64,6 +65,25 @@
             on_text:
                 root.type = type_spinner.text
                 sl_nb_phases.value = 1 if type_spinner.text == 'DC' else 3
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: None, None
+        size: 400, 40
+
+        Label:
+            text: 'Smart Charge Enabled'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+
+        CheckBox:
+            id: ch_smart_charge_enabled
+            active: True
 
     BoxLayout:
         orientation: 'horizontal'
