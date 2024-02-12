@@ -35,10 +35,10 @@ def generate(args):
                 "id": simu_name,
                 "vendor": "OpenOCPP",
                 "model": "OpenOCPP",
-                "serial": "CP_1",
+                "serial": f"SN_{simu_name}",
                 "central_system": f"ws://{args.broker}:{args.port}/",
                 "nb_connectors": 1,
-                "nb_phases": 1,
+                "nb_phases": 3,
                 "max_setpoint": 32,
                 "max_setpoint_per_connector": 32,
                 "voltage": 230.0,
@@ -83,16 +83,16 @@ if len(args.sequence) != 2 or (args.sequence[0] > args.sequence[1]):
     exit(1)
 print(args)
 
-# Mosquitto broker
-evce_broker = args.broker
-evce_broker_port = args.broker_port
-client = mqtt.Client("evce")
-print(f"Connect to mqtt {evce_broker} {evce_broker_port}")
-client.connect(evce_broker, evce_broker_port)
-
 if (args.command == "generate"):
     args.func(args)
 else:
+    # Mosquitto broker
+    evce_broker = args.broker
+    evce_broker_port = args.broker_port
+    client = mqtt.Client("evce")
+    print(f"Connect to mqtt {evce_broker} {evce_broker_port}")
+    client.connect(evce_broker, evce_broker_port)
+
     # Run command
     for index in range(args.sequence[0], args.sequence[1]+1):
         simu_name = f"{args.prefix}{index}"
