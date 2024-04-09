@@ -235,11 +235,12 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                 auto powers = meter_simulator->getInstantPowers();
                 if (measurand.second.isSet())
                 {
+                    // a phase is specified :
                     unsigned int phase = static_cast<unsigned int>(measurand.second.value());
                     if (phase <= meter_simulator->getNumberOfPhases())
                     {
-                        value.value = std::to_string(powers[phase]);
-                        value.phase = static_cast<Phase>(phase);
+                        value.value        = std::to_string(powers[phase]);
+                        value.phase        = static_cast<Phase>(phase);
                         value.unit.value() = UnitOfMeasure::W;
                         meter_value.sampledValue.push_back(value);
                     }
@@ -250,12 +251,24 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                 }
                 else
                 {
-                    for (size_t i = 0; i < powers.size(); i++)
+                    // no phase specified :
+                    if (meter_simulator->getCurrentOutType() == ConnectorData::ConnectorType::DC)
                     {
-                        value.value = std::to_string(powers[i]);
-                        value.phase = static_cast<Phase>(i);
+                        // only first value for DC
+                        value.value        = std::to_string(powers[0]);
                         value.unit.value() = UnitOfMeasure::W;
                         meter_value.sampledValue.push_back(value);
+                    }
+                    else
+                    {
+                        // all phases for AC station
+                        for (size_t i = 0; i < powers.size(); i++)
+                        {
+                            value.value        = std::to_string(powers[i]);
+                            value.phase        = static_cast<Phase>(i);
+                            value.unit.value() = UnitOfMeasure::W;
+                            meter_value.sampledValue.push_back(value);
+                        }
                     }
                 }
             }
@@ -277,8 +290,8 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     unsigned int phase = static_cast<unsigned int>(measurand.second.value());
                     if (phase <= meter_simulator->getNumberOfPhases())
                     {
-                        value.value = std::to_string(voltages[phase]);
-                        value.phase = static_cast<Phase>(phase);
+                        value.value        = std::to_string(voltages[phase]);
+                        value.phase        = static_cast<Phase>(phase);
                         value.unit.value() = UnitOfMeasure::V;
                         meter_value.sampledValue.push_back(value);
                     }
