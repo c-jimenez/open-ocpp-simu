@@ -48,6 +48,10 @@ SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
       m_nb_phases(nb_phases),
       m_charge_point_type(chargepoint_type)
 {
+    if(m_charge_point_type == ConnectorData::ConnectorType::DC)
+    {
+        m_nb_phases = 1u;
+    }
 }
 
 /** @brief Destructor */
