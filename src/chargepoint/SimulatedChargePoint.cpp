@@ -102,6 +102,10 @@ void SimulatedChargePoint::start()
         // Control loop
         std::cout << "Start loop OCPP" << std::endl;
         loop(mqtt, *charge_point.get(), event_handler, connectors);
+        if (event_handler.isResetPending())
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
 
         // Stop OCPP
         std::cout << "Stop CP" << std::endl;
