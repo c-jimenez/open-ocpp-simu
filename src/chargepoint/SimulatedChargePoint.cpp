@@ -34,6 +34,8 @@ SOFTWARE.
 #include <thread>
 #include <vector>
 
+#include <openocpp/TimerPool.h>
+
 using namespace ocpp::types;
 
 /** @brief Constructor */
@@ -48,7 +50,7 @@ SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
       m_nb_phases(nb_phases),
       m_charge_point_type(chargepoint_type)
 {
-    if(m_charge_point_type == ConnectorData::ConnectorType::DC)
+    if (m_charge_point_type == ConnectorData::ConnectorType::DC)
     {
         m_nb_phases = 1u;
     }
@@ -66,35 +68,37 @@ void SimulatedChargePoint::start()
     // MQTT connectivity
     std::cout << "Starting MQTT connectivity..." << std::endl;
     MqttManager mqtt(m_config);
-    std::thread mqtt_thread([&mqtt, this] { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_setpoint), m_charge_point_type); });;
-
-    // OCPP connectivity
-    std::cout << "Starting OCPP connectivity..." << std::endl;
-    ChargePointEventsHandler                         event_handler(m_config);
-    std::unique_ptr<ocpp::chargepoint::IChargePoint> charge_point =
-        ocpp::chargepoint::IChargePoint::create(m_config.stackConfig(), m_config.ocppConfig(), event_handler);
-    event_handler.setChargePoint(*charge_point);
+    std::thread mqtt_thread([&mqtt, this]
+                            { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_setpoint), m_charge_point_type); });
 
     // Allocated data for each connector
+    ocpp::helpers::TimerPool     meters_timer_pool;
     std::vector<MeterSimulator*> meters(m_config.ocppConfig().numberOfConnectors());
     std::vector<ConnectorData>   connectors(meters.size());
     std::vector<float>           voltages(m_nb_phases);
     voltages.assign(voltages.size(), m_config.stackConfig().operatingVoltage());
-    float                        power_factor(m_config.powerFactor());
+    float power_factor(m_config.powerFactor());
     for (unsigned int i = 0; i < connectors.size(); i++)
     {
         connectors[i].id           = i + 1u;
-        connectors[i].meter        = new MeterSimulator(charge_point->getTimerPool(), m_nb_phases, m_charge_point_type);
+        connectors[i].meter        = new MeterSimulator(meters_timer_pool, m_nb_phases, m_charge_point_type);
         connectors[i].max_setpoint = m_max_connector_setpoint;
         meters[i]                  = connectors[i].meter;
         meters[i]->setVoltages(voltages);
         meters[i]->setPowerFactor(power_factor);
         meters[i]->start();
     }
-    event_handler.setConnectors(connectors);
 
+    ChargePointEventsHandler event_handler(m_config);
     do
     {
+        // OCPP connectivity
+        std::cout << "Starting OCPP connectivity..." << std::endl;
+        std::unique_ptr<ocpp::chargepoint::IChargePoint> charge_point =
+            ocpp::chargepoint::IChargePoint::create(m_config.stackConfig(), m_config.ocppConfig(), event_handler);
+        event_handler.setChargePoint(*charge_point);
+        event_handler.setConnectors(connectors);
+
         // Start OCPP
         event_handler.clearResetPending();
         charge_point->start();
@@ -592,8 +596,8 @@ bool SimulatedChargePoint::isTransactionStopCondition(MqttManager&              
 /** @brief Compute the setpoint for each connector */
 void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& charge_point, std::vector<ConnectorData>& connectors)
 {
-    Optional<SmartChargingSetpoint> charge_point_setpoint;
-    Optional<SmartChargingSetpoint> connector_setpoint;
+    Optional<SmartChargingSetpoint>   charge_point_setpoint;
+    Optional<SmartChargingSetpoint>   connector_setpoint;
     ocpp::types::ChargingRateUnitType charge_point_rate_unit_type;
 
     // Default setpoint is max current
