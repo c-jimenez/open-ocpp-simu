@@ -36,7 +36,7 @@ SOFTWARE.
 
 #include <openocpp/TimerPool.h>
 
-using namespace ocpp::types;
+using namespace ocpp::types::ocpp16;
 
 /** @brief Constructor */
 SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
@@ -596,9 +596,9 @@ bool SimulatedChargePoint::isTransactionStopCondition(MqttManager&              
 /** @brief Compute the setpoint for each connector */
 void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& charge_point, std::vector<ConnectorData>& connectors)
 {
-    Optional<SmartChargingSetpoint>   charge_point_setpoint;
-    Optional<SmartChargingSetpoint>   connector_setpoint;
-    ocpp::types::ChargingRateUnitType charge_point_rate_unit_type;
+    ocpp::types::Optional<SmartChargingSetpoint>   charge_point_setpoint;
+    ocpp::types::Optional<SmartChargingSetpoint>   connector_setpoint;
+    ChargingRateUnitType charge_point_rate_unit_type;
 
     // Default setpoint is max current
     float whole_charge_point_setpoint = m_max_charge_point_setpoint;
@@ -611,11 +611,11 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
 
         if (connector.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
         {
-            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::A;
+            charge_point_rate_unit_type = ChargingRateUnitType::A;
         }
         else
         {
-            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::W;
+            charge_point_rate_unit_type = ChargingRateUnitType::W;
         }
 
         // Get the smart charging setpoint

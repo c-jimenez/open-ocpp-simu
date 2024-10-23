@@ -358,14 +358,14 @@ void MqttManager::publishOcppConfig()
 
         // Get vector of key/value for ocpp config
         std::vector<ocpp::types::CiStringType<50u>> keys;
-        std::vector<ocpp::types::KeyValue>          values;
+        std::vector<ocpp::types::ocpp16::KeyValue>          values;
         std::vector<ocpp::types::CiStringType<50u>> unknown_values;
         m_config.ocppConfig().getConfiguration(keys, values, unknown_values);
 
         // Create the JSON message
         rapidjson::Document msg;
         msg.Parse("{}");
-        for (const ocpp::types::KeyValue& keyValue : values)
+        for (const ocpp::types::ocpp16::KeyValue& keyValue : values)
         {
             if (!keyValue.value.value().empty())
             {
@@ -401,7 +401,7 @@ void MqttManager::publishData(const std::vector<ConnectorData>& connectors)
             msg.Parse("{}");
             msg.AddMember(
                 rapidjson::StringRef("status"),
-                rapidjson::Value(ocpp::types::ChargePointStatusHelper.toString(connector.status).c_str(), msg.GetAllocator()).Move(),
+                rapidjson::Value(ocpp::types::ocpp16::ChargePointStatusHelper.toString(connector.status).c_str(), msg.GetAllocator()).Move(),
                 msg.GetAllocator());
             msg.AddMember(
                 rapidjson::StringRef("id_tag"), rapidjson::Value(connector.id_tag.c_str(), msg.GetAllocator()).Move(), msg.GetAllocator());
