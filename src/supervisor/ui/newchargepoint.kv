@@ -28,6 +28,7 @@
 
     cp_id: ti_cp_id.text
     type: type_spinner.text
+    ocpp_version: ocpp_version_spinner.text
     vendor: ti_vendor.text
     model: ti_model.text
     serial: ti_serial.text
@@ -44,6 +45,24 @@
     size_hint: None, None
     size: 400, 400
     
+    BoxLayout:
+        size_hint_y: None
+        height: dp(50)
+        padding: dp(10)
+        spacing: dp(10)
+        Label:
+            text: 'OCPP Version'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+        Spinner:
+            id: ocpp_version_spinner
+            text: '1.6'
+            values: ['1.6', '2.0']
+            on_text:
+                root.ocpp_version = ocpp_version_spinner.text
 
     BoxLayout:
         size_hint_y: None

@@ -193,10 +193,11 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
         if (charge_point.HasMember("id") && charge_point.HasMember("vendor") && charge_point.HasMember("type") && charge_point.HasMember("model") &&
             charge_point.HasMember("serial") && charge_point.HasMember("max_setpoint") && charge_point.HasMember("nb_connectors") &&
             charge_point.HasMember("max_setpoint_per_connector") && charge_point.HasMember("nb_phases") &&
-            charge_point.HasMember("central_system") && charge_point.HasMember("voltage"))
+            charge_point.HasMember("central_system") && charge_point.HasMember("voltage") && charge_point.HasMember("ocpp_version"))
         {
             // Extract charge point parameters
             std::string  id                        = charge_point["id"].GetString();
+            std::string  ocpp_version              = charge_point["ocpp_version"].GetString();
             std::string  type                      = charge_point["type"].GetString();
             std::string  vendor                    = charge_point["vendor"].GetString();
             std::string  model                     = charge_point["model"].GetString();
@@ -250,6 +251,7 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 cmd << " -m " << max_setpoint;
                 cmd << " -i " << max_current_per_connector;
                 cmd << " -e " << type;
+                cmd << " -a " << ocpp_version;
 #ifndef _MSC_VER
                 cmd << " &" << std::endl;
 #endif // _MSC_VER

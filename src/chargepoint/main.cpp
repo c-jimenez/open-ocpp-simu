@@ -78,6 +78,7 @@ int main(int argc, char* argv[])
     std::string           chargepoint_type          = "AC";
     std::string           vendor_name               = "";
     unsigned int          operating_voltage         = 0u;
+    std::string           ocpp_version              = "1.6"; 
 
     // Check parameters
     if (argc > 1)
@@ -183,6 +184,12 @@ int main(int argc, char* argv[])
                 argc--;
                 operating_voltage = static_cast<unsigned int>(std::atoi(*argv));
             }
+            else if ((strcmp(*argv, "-a") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                ocpp_version = *argv;
+            }
             else
             {
                 param     = *argv;
@@ -214,6 +221,7 @@ int main(int argc, char* argv[])
             std::cout << "    -i : Max setpoint (in A for AC, in W for DC) for a connector of the Charge Point (Default = 32A)"
                       << std::endl;
             std::cout << "    -e : Charge Point's type (AC/DC) (Default = AC)" << std::endl;
+            std::cout << "    -a : OCPP stack version (1.6/2.0) (Default = 1.6)" << std::endl;
             std::cout << "    -v : Vendor name (Default = OpenOCPP)" << std::endl;
             std::cout << "    -o : Operating voltage (Default = 230)" << std::endl;
             std::cout << "    -f : Files to put in diagnostic zip. Absolute path or relative path from working directory. " << std::endl;
@@ -235,6 +243,8 @@ int main(int argc, char* argv[])
     config.setStackConfigValue("ChargePointIdentifier", chargepoint_id);
     config.setStackConfigValue("ChargePointSerialNumber", serial_number);
     config.setOcppConfigValue("NumberOfConnectors", std::to_string(nb_connectors));
+
+    ChargePointData::OCPPVersion cp_ocpp_version = ChargePointData::OCPPVersionHelper.fromString(ocpp_version);
 
     ConnectorData::ConnectorType cp_current_out_type = ConnectorData::ConnectorTypeHelper.fromString(chargepoint_type);
 
@@ -283,7 +293,7 @@ int main(int argc, char* argv[])
     }
 
     // Start simulated charge point
-    SimulatedChargePoint chargepoint(config, max_charge_point_setpoint, max_connector_setpoint, nb_phases, cp_current_out_type);
+    SimulatedChargePoint chargepoint(config, max_charge_point_setpoint, max_connector_setpoint, nb_phases, cp_current_out_type, cp_ocpp_version);
     chargepoint.start();
 
     return 0;

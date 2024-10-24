@@ -63,7 +63,6 @@ class Connector(object):
         # type (AC/DC)
         self.type = ""
 
-
 class ChargePoint(object):
     """ Data associated with a Charge Point """
 
@@ -74,6 +73,8 @@ class ChargePoint(object):
         self.id = id
         # Type
         self.type = ""
+        # OCPP version
+        self.ocpp_version = ""
         # Status
         self.status = ""
         # Vendor
@@ -351,6 +352,7 @@ class ChargePointManager(object):
                     data = json.loads(payload)
                     cp.status = data["status"]
                     cp.type = data["type"]
+                    cp.ocpp_version = data["ocpp_version"]
                     cp.vendor = data["vendor"]
                     cp.model = data["model"]
                     cp.serial = data["serial"]
@@ -404,6 +406,7 @@ class ChargePointManager(object):
         cp_dict = {}
         cp_dict["id"] = cp.id
         cp_dict["type"] = cp.type
+        cp_dict["ocpp_version"] = cp.ocpp_version
         cp_dict["vendor"] = cp.vendor
         cp_dict["model"] = cp.model
         cp_dict["serial"] = cp.serial

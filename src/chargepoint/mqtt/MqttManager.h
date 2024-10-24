@@ -57,7 +57,7 @@ class MqttManager : public IMqttClient::IListener
     bool isEndOfApplication() const { return m_end; }
 
     /** @brief Start the MQTT connection process (blocking) */
-    void start(unsigned int nb_phases, unsigned int max_charge_point_current, ConnectorData::ConnectorType chargepoint_type);
+    void start(unsigned int nb_phases, unsigned int max_charge_point_current, ConnectorData::ConnectorType chargepoint_type, ChargePointData::OCPPVersion chargepoint_ocpp_version);
 
     /** @brief Indicate a pending Id tag */
     bool isIdTagPending(unsigned int connector_id) const;
@@ -72,7 +72,11 @@ class MqttManager : public IMqttClient::IListener
     void updateData(std::vector<ConnectorData>& connectors) const;
 
     /** @brief Publish the status of the charge point */
-    bool publishStatus(const std::string& status, unsigned int nb_phases, float max_setpoint, ConnectorData::ConnectorType chargepoint_type);
+    bool publishStatus(const std::string&           status,
+                       unsigned int                 nb_phases,
+                       float                        max_setpoint,
+                       ConnectorData::ConnectorType chargepoint_type,
+                       ChargePointData::OCPPVersion chargepoint_ocpp_version);
 
     /** @brief Publish the data of the connectors */
     void publishData(const std::vector<ConnectorData>& connectors);
@@ -101,7 +105,7 @@ class MqttManager : public IMqttClient::IListener
     std::string m_connectors_topic;
 
     /** @brief Build the status message of the charge point */
-    std::string buildStatusMessage(const char* status, unsigned int nb_phases, float max_setpoint, const char* chargepoint_type);
+    std::string buildStatusMessage(const char* status, unsigned int nb_phases, float max_setpoint, const char* chargepoint_type, const char* ocpp_version);
 };
 
 #endif // MQTTMANAGER_H

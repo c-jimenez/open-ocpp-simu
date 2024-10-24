@@ -43,12 +43,14 @@ SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
                                            unsigned int                 max_charge_point_setpoint,
                                            unsigned int                 max_connector_setpoint,
                                            unsigned int                 nb_phases,
-                                           ConnectorData::ConnectorType chargepoint_type)
+                                           ConnectorData::ConnectorType chargepoint_type,
+                                           ChargePointData::OCPPVersion chargepoint_ocpp_version)
     : m_config(config),
       m_max_charge_point_setpoint(static_cast<float>(max_charge_point_setpoint)),
       m_max_connector_setpoint(static_cast<float>(max_connector_setpoint)),
       m_nb_phases(nb_phases),
-      m_charge_point_type(chargepoint_type)
+      m_charge_point_type(chargepoint_type),
+      m_charge_point_ocpp_version(chargepoint_ocpp_version)
 {
     if (m_charge_point_type == ConnectorData::ConnectorType::DC)
     {
@@ -69,7 +71,7 @@ void SimulatedChargePoint::start()
     std::cout << "Starting MQTT connectivity..." << std::endl;
     MqttManager mqtt(m_config);
     std::thread mqtt_thread([&mqtt, this]
-                            { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_setpoint), m_charge_point_type); });
+                            { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_setpoint), m_charge_point_type, m_charge_point_ocpp_version); });
 
     // Allocated data for each connector
     ocpp::helpers::TimerPool     meters_timer_pool;
@@ -165,7 +167,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
             }
             if (!status_published)
             {
-                status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type);
+                status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type, m_charge_point_ocpp_version);
             }
 
             // Publish connectors status
@@ -194,7 +196,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
         }
         if (!status_published)
         {
-            status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type);
+            status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type, m_charge_point_ocpp_version);
         }
 
         // Update connector statuses
