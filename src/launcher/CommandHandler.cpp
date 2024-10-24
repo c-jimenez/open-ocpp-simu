@@ -194,12 +194,17 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
             charge_point.HasMember("iso15118_pnc_enabled") && charge_point.HasMember("model") && charge_point.HasMember("serial") &&
             charge_point.HasMember("max_setpoint") && charge_point.HasMember("nb_connectors") &&
             charge_point.HasMember("max_setpoint_per_connector") && charge_point.HasMember("nb_phases") &&
-            charge_point.HasMember("central_system") && charge_point.HasMember("voltage"))
+            charge_point.HasMember("central_system") && charge_point.HasMember("voltage") && charge_point.HasMember("ocpp_version"))
         {
             // Extract charge point parameters
             std::string  id                        = charge_point["id"].GetString();
+<<<<<<< HEAD
             std::string  type                      = charge_point["type"].GetString();       
             bool  iso15118pnc                      = charge_point["iso15118_pnc_enabled"].GetBool();
+=======
+            std::string  ocpp_version              = charge_point["ocpp_version"].GetString();
+            std::string  type                      = charge_point["type"].GetString();
+>>>>>>> b7fa6a7 (Add OCPP stack version option in UI)
             std::string  vendor                    = charge_point["vendor"].GetString();
             std::string  model                     = charge_point["model"].GetString();
             std::string  serial                    = charge_point["serial"].GetString();
@@ -254,6 +259,7 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 cmd << " -i " << max_current_per_connector;
                 cmd << " -e " << type;
                 cmd << " -g " << (iso15118pnc ? "true" : "false");
+                cmd << " -a " << ocpp_version;
 #ifndef _MSC_VER
                 cmd << " &" << std::endl;
 #endif // _MSC_VER

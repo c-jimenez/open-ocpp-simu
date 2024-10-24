@@ -65,7 +65,6 @@ class Connector(object):
         # type (AC/DC)
         self.type = ""
 
-
 class ChargePoint(object):
     """ Data associated with a Charge Point """
 
@@ -78,6 +77,8 @@ class ChargePoint(object):
         self.type = ""
         # iso15118 Pnc state
         self.iso15118_pnc_enabled = False
+        # OCPP version
+        self.ocpp_version = ""
         # Status
         self.status = ""
         # Vendor
@@ -375,6 +376,7 @@ class ChargePointManager(object):
                     cp.status = data["status"]
                     cp.type = data["type"]
                     cp.iso15118_pnc_enabled = data["iso15118_pnc_enabled"]
+                    cp.ocpp_version = data["ocpp_version"]
                     cp.vendor = data["vendor"]
                     cp.model = data["model"]
                     cp.serial = data["serial"]
@@ -429,6 +431,7 @@ class ChargePointManager(object):
         cp_dict["id"] = cp.id
         cp_dict["type"] = cp.type
         cp_dict["iso15118_pnc_enabled"] = cp.iso15118_pnc_enabled
+        cp_dict["ocpp_version"] = cp.ocpp_version
         cp_dict["vendor"] = cp.vendor
         cp_dict["model"] = cp.model
         cp_dict["serial"] = cp.serial

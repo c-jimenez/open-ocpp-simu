@@ -31,6 +31,14 @@ SOFTWARE.
 
 class MeterSimulator;
 
+/** @brief Data associated to a charge point */
+struct ChargePointData
+{
+    /** @brief Charge point OCPP stack version (OCPP16/OCPP20) */
+    enum class OCPPVersion { OCPP16, OCPP20 };
+
+    static inline const ocpp::types::EnumToStringFromString<OCPPVersion> OCPPVersionHelper{{{OCPPVersion::OCPP16, "1.6"}, {OCPPVersion::OCPP20, "2.0"}}};
+};
 
 /** @brief Data associated to a connector */
 struct ConnectorData
