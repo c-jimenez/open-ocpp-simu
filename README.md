@@ -21,15 +21,23 @@ These 3 applications are communicating using the MQTT protocol and the simulated
 ## Install and build
 
 ### Pre-requisites
-The project can be be built using ether docker or natively.
+The project can be be built using either docker or natively.
 
 ### With Docker
 Docker must be installed.
 
-Run the makefile target:
+Run the makefile targets:
 ```
-make docker-build-images
+make docker-build-simu-compile
+make
 ```
+
+If you want to run the simulator in a dedicated container, you can build the container image using the following target:
+```
+make docker-build-cp-simulator
+```
+
+Otherwise, the binaries are generated in the `bin/gcc_native` directory and can be started manually.
 
 ### Without Docker
 

@@ -30,6 +30,26 @@
             "cwd": "${workspaceRoot}/bin/gcc_native/",
             "arguments": "-w ./chargepoints/Simulated_CP -t ws://127.0.0.1:8080/openocpp/ -c Simulated_CP -s SN123456 -n 2 -p 3",
             "valuesFormatting": "parseText"
+        },
+        {
+            "name": "Joindre",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceRoot}/bin/gcc_native/chargepoint",
+            "processId": "${command:pickProcess}",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Activer l'impression en mode Pretty pour gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Définir la version désassemblage sur Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

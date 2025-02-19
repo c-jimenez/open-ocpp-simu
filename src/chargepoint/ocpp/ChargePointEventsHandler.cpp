@@ -181,8 +181,8 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                     unsigned int phase = static_cast<unsigned int>(measurand.second.value());
                     if (phase <= meter_simulator->getNumberOfPhases())
                     {
-                        value.value = std::to_string(currents[phase]);
-                        value.phase = static_cast<Phase>(phase);
+                        value.value        = std::to_string(currents[phase]);
+                        value.phase        = static_cast<Phase>(phase);
                         value.unit.value() = UnitOfMeasure::A;
                         meter_value.sampledValue.push_back(value);
                     }
@@ -195,8 +195,8 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                 {
                     for (size_t i = 0; i < currents.size(); i++)
                     {
-                        value.value = std::to_string(currents[i]);
-                        value.phase = static_cast<Phase>(i);
+                        value.value        = std::to_string(currents[i]);
+                        value.phase        = static_cast<Phase>(i);
                         value.unit.value() = UnitOfMeasure::A;
                         meter_value.sampledValue.push_back(value);
                     }
@@ -206,8 +206,8 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
 
             case Measurand::CurrentOffered:
             {
-                auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
-                value.value   = std::to_string(static_cast<unsigned int>(setpoint));
+                auto setpoint      = m_connectors->at(connector_id - 1u).setpoint;
+                value.value        = std::to_string(static_cast<unsigned int>(setpoint));
                 value.unit.value() = UnitOfMeasure::A;
                 meter_value.sampledValue.push_back(value);
             }
@@ -215,8 +215,8 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
 
             case Measurand::PowerOffered:
             {
-                auto setpoint = m_connectors->at(connector_id - 1u).setpoint;
-                value.value   = std::to_string(static_cast<unsigned int>(setpoint));
+                auto setpoint      = m_connectors->at(connector_id - 1u).setpoint;
+                value.value        = std::to_string(static_cast<unsigned int>(setpoint));
                 value.unit.value() = UnitOfMeasure::W;
                 meter_value.sampledValue.push_back(value);
             }
@@ -304,8 +304,8 @@ bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
                 {
                     for (size_t i = 0; i < voltages.size(); i++)
                     {
-                        value.value = std::to_string(voltages[i]);
-                        value.phase = static_cast<Phase>(i);
+                        value.value        = std::to_string(voltages[i]);
+                        value.phase        = static_cast<Phase>(i);
                         value.unit.value() = UnitOfMeasure::V;
                         meter_value.sampledValue.push_back(value);
                     }
@@ -390,8 +390,8 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
         {
             period.limit = connector_data.max_setpoint;
         }
-        period.numberPhases       = connector_data.meter->getNumberOfPhases();
-        period.startPeriod        = 0;
+        period.numberPhases = connector_data.meter->getNumberOfPhases();
+        period.startPeriod  = 0;
         if (connector_data.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
         {
             schedule.chargingRateUnit = ChargingRateUnitType::A;
@@ -471,9 +471,12 @@ std::string ChargePointEventsHandler::updateFirmwareRequested()
 void ChargePointEventsHandler::installFirmware(const std::string& firmware_file)
 {
     cout << "Firmware to install : " << firmware_file << endl;
-    std::thread response_thread= std::thread([&]{
-        std::this_thread::sleep_for(5s);
-    m_chargepoint->notifyFirmwareUpdateStatus(true);});
+    std::thread response_thread = std::thread(
+        [&]
+        {
+            std::this_thread::sleep_for(5s);
+            m_chargepoint->notifyFirmwareUpdateStatus(true);
+        });
     response_thread.detach();
 }
 
@@ -1005,17 +1008,20 @@ ocpp::types::DeleteCertificateStatusEnumType ChargePointEventsHandler::iso15118D
                                     bool,
                                     bool,
                                     bool,
+                                    bool,
                                     std::vector<std::tuple<GetCertificateIdUseEnumType, Certificate, std::vector<Certificate>>>&) */
 void ChargePointEventsHandler::iso15118GetInstalledCertificates(
     bool v2g_root_certificate,
     bool mo_root_certificate,
     bool v2g_certificate_chain,
+    bool oem_root_certificate,
     std::vector<std::tuple<ocpp::types::GetCertificateIdUseEnumType, ocpp::x509::Certificate, std::vector<ocpp::x509::Certificate>>>&
         certificates)
 {
     cout << "ISO15118 get installed certificates requested : v2g_root_certificate = " << (v2g_root_certificate ? "yes" : "no")
          << " - mo_root_certificate = " << (mo_root_certificate ? "yes" : "no")
-         << " - v2g_certificate_chain = " << (v2g_certificate_chain ? "yes" : "no") << endl;
+         << " - v2g_certificate_chain = " << (v2g_certificate_chain ? "yes" : "no")
+         << " - oem_root_certificate = " << (oem_root_certificate ? "yes" : "no") << endl;
 
     for (auto const& dir_entry : std::filesystem::directory_iterator{m_working_dir})
     {
@@ -1052,6 +1058,16 @@ void ChargePointEventsHandler::iso15118GetInstalledCertificates(
                     certificates.emplace_back(std::move(tuple));
                 }
             }
+            if (oem_root_certificate)
+            {
+                if (ocpp::helpers::startsWith(filename, "oem_root_") && ocpp::helpers::endsWith(filename, ".pem"))
+                {
+                    auto tuple = std::make_tuple(GetCertificateIdUseEnumType::OEMRootCertificate,
+                                                 Certificate(dir_entry.path()),
+                                                 std::vector<ocpp::x509::Certificate>());
+                    certificates.emplace_back(std::move(tuple));
+                }
+            }
         }
     }
 }
@@ -1082,11 +1098,18 @@ ocpp::types::InstallCertificateStatusEnumType ChargePointEventsHandler::iso15118
             name << "iso_v2g_root_" << sha256.resultString() << ".pem";
             cert_filename = (m_working_dir / name.str()).string();
         }
-        else
+        else if (type == InstallCertificateUseEnumType::MORootCertificate)
         {
             // MO root certificate
             std::stringstream name;
             name << "iso_mo_root_" << sha256.resultString() << ".pem";
+            cert_filename = (m_working_dir / name.str()).string();
+        }
+        else
+        {
+            // OEM root certificate
+            std::stringstream name;
+            name << "oem_root_" << sha256.resultString() << ".pem";
             cert_filename = (m_working_dir / name.str()).string();
         }
 
