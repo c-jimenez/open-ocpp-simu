@@ -62,8 +62,17 @@ class MqttManager : public IMqttClient::IListener
     /** @brief Indicate a pending Id tag */
     bool isIdTagPending(unsigned int connector_id) const;
 
+    /** @brief Indicate a pending Id token */
+    bool isIdTokenPending(unsigned int connector_id) const;
+
     /** @brief Reset the pending Id tag */
     void resetIdTagPending(unsigned int connector_id);
+
+    /** @brief Reset the pending Id token */
+    void resetIdTokenPending(unsigned int connector_id);
+
+    /** @brief Pending Id token */
+    const std::string& pendingIdToken(unsigned int connector_id) const;
 
     /** @brief Pending Id tag for the remote start request */
     const std::string& pendingIdTag(unsigned int connector_id) const;

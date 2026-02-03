@@ -37,9 +37,10 @@
     nb_phases: 3
     max_setpoint: 20
     voltage: 230
+    iso15118_pnc_enabled: False
 
     size_hint: None, None
-    size: 440, 280
+    size: 440, 320
 
     BackgroundLabel:
         text: root.cp_id + " - " + root.status 
@@ -189,6 +190,30 @@
 
         Label:
             text: str(root.voltage) + ' V'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: 1., 1.
+            size: 0, 0
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 5
+        spacing: 5
+        size_hint: None, None
+        size: 400, 40
+
+        Label:
+            text: 'Iso15118Pnc'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+
+
+        Label:
+            text: 'Enabled' if root.iso15118_pnc_enabled else 'Disabled'
             text_size: self.size
             halign: 'center'
             valign: 'middle'

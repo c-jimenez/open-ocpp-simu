@@ -47,6 +47,7 @@ struct ConnectorData
         : id(0),
           status(),
           id_tag(),
+          id_token(),
           parent_id_tag(),
           max_setpoint(0.f),
           ocpp_setpoint(0.f),
@@ -68,6 +69,8 @@ struct ConnectorData
     ocpp::types::ChargePointStatus status;
     /** @brief Id tag in use */
     std::string id_tag;
+    /** @brief Id token in use */
+    std::string id_token;
     /** @brief Parent id of the id tag in use */
     std::string parent_id_tag;
     /** @brief Maximum setpoint */

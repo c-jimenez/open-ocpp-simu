@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
     unsigned int          max_connector_setpoint    = 32u;
     std::set<std::string> diag_files                = {"ocpp.db"};
     std::string           chargepoint_type          = "AC";
+    std::string           chargepoint_iso15118pnc   = "false";
     std::string           vendor_name               = "";
     unsigned int          operating_voltage         = 0u;
 
@@ -164,6 +165,12 @@ int main(int argc, char* argv[])
                 argc--;
                 chargepoint_type = *argv;
             }
+            else if ((strcmp(*argv, "-g") == 0) && (argc > 1))
+            {
+                argv++;
+                argc--;
+                chargepoint_iso15118pnc = *argv;
+            }
             else if ((strcmp(*argv, "-v") == 0) && (argc > 1))
             {
                 argv++;
@@ -214,6 +221,7 @@ int main(int argc, char* argv[])
             std::cout << "    -i : Max setpoint (in A for AC, in W for DC) for a connector of the Charge Point (Default = 32A)"
                       << std::endl;
             std::cout << "    -e : Charge Point's type (AC/DC) (Default = AC)" << std::endl;
+            std::cout << "    -g : Charge point supports iso15118 Plug & Charge (true/false) (Default = false)" << std::endl;
             std::cout << "    -v : Vendor name (Default = OpenOCPP)" << std::endl;
             std::cout << "    -o : Operating voltage (Default = 230)" << std::endl;
             std::cout << "    -f : Files to put in diagnostic zip. Absolute path or relative path from working directory. " << std::endl;
@@ -235,6 +243,7 @@ int main(int argc, char* argv[])
     config.setStackConfigValue("ChargePointIdentifier", chargepoint_id);
     config.setStackConfigValue("ChargePointSerialNumber", serial_number);
     config.setOcppConfigValue("NumberOfConnectors", std::to_string(nb_connectors));
+    config.setOcppConfigValue("Iso15118PnCEnabled", chargepoint_iso15118pnc);
 
     ConnectorData::ConnectorType cp_current_out_type = ConnectorData::ConnectorTypeHelper.fromString(chargepoint_type);
 

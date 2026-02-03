@@ -190,14 +190,16 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
     {
         // Check charge point parameters
         const rapidjson::Value& charge_point = *it_charge_point;
-        if (charge_point.HasMember("id") && charge_point.HasMember("vendor") && charge_point.HasMember("type") && charge_point.HasMember("model") &&
-            charge_point.HasMember("serial") && charge_point.HasMember("max_setpoint") && charge_point.HasMember("nb_connectors") &&
+        if (charge_point.HasMember("id") && charge_point.HasMember("vendor") && charge_point.HasMember("type") &&
+            charge_point.HasMember("iso15118_pnc_enabled") && charge_point.HasMember("model") && charge_point.HasMember("serial") &&
+            charge_point.HasMember("max_setpoint") && charge_point.HasMember("nb_connectors") &&
             charge_point.HasMember("max_setpoint_per_connector") && charge_point.HasMember("nb_phases") &&
             charge_point.HasMember("central_system") && charge_point.HasMember("voltage"))
         {
             // Extract charge point parameters
             std::string  id                        = charge_point["id"].GetString();
-            std::string  type                      = charge_point["type"].GetString();
+            std::string  type                      = charge_point["type"].GetString();       
+            bool  iso15118pnc                      = charge_point["iso15118_pnc_enabled"].GetBool();
             std::string  vendor                    = charge_point["vendor"].GetString();
             std::string  model                     = charge_point["model"].GetString();
             std::string  serial                    = charge_point["serial"].GetString();
@@ -233,7 +235,8 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 config.set("ChargePoint", "ChargePointVendor", vendor);
                 config.set("ChargePoint", "ChargePointModel", model);
                 config.set("ChargePoint", "DatabasePath", (chargepoint_dir / "ocpp.db").string().c_str());
-                config.set("ChargePoint", "OperatingVoltage", voltage);
+                config.set("ChargePoint", "EvCertPath", (chargepoint_dir / "iso_cp_ev_cert.pem").string().c_str());
+                            config.set("ChargePoint", "OperatingVoltage", voltage);
 
                 // Build command line
                 std::stringstream cmd;
@@ -250,6 +253,7 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
                 cmd << " -m " << max_setpoint;
                 cmd << " -i " << max_current_per_connector;
                 cmd << " -e " << type;
+                cmd << " -g " << (iso15118pnc ? "true" : "false");
 #ifndef _MSC_VER
                 cmd << " &" << std::endl;
 #endif // _MSC_VER

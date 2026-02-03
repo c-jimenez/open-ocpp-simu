@@ -33,10 +33,12 @@ SOFTWARE.
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <filesystem>
 
 #include <openocpp/TimerPool.h>
 
 using namespace ocpp::types;
+using namespace ocpp::x509;
 
 /** @brief Constructor */
 SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
@@ -137,6 +139,23 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
     bool               ocpp_connected   = false;
     RegistrationStatus ocpp_status      = RegistrationStatus::Rejected;
     std::string        status_str       = "Disconnected";
+    bool iso15118_ev_certificate_requested = false;
+    bool iso15118_ev_certificate_status = false;
+    std::filesystem::path ev_cert_path(m_config.stackConfig().EvCertPath());
+
+    // Look for installed charge point certificates and remove it
+    for (auto const& dir_entry : std::filesystem::directory_iterator{m_config.workingDir()})
+    {
+        if (!dir_entry.is_directory())
+        {
+            std::string filename = dir_entry.path().filename().string();
+            if (ocpp::helpers::startsWith(filename, "iso_cp_") &&
+                (ocpp::helpers::endsWith(filename, ".pem") || ocpp::helpers::endsWith(filename, ".key")))
+            {
+                std::filesystem::remove(dir_entry.path());
+            }
+        }
+    }
 
     // Control loop
     do
@@ -197,6 +216,39 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
             status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type);
         }
 
+        if (m_config.ocppConfig().iso15118PnCEnabled() && !iso15118_ev_certificate_requested)
+        {
+            std::string exi_request = "An EXI encoded request coming from the ISO15118-2 stack";
+            std::string exi_response;
+            if (charge_point.iso15118GetEVCertificate("1.0", CertificateActionEnumType::Install, exi_request, exi_response))
+            {
+                Certificate ev_cert(exi_response);
+                if (ev_cert.isValid())
+                {
+                    ev_cert.toFile(ev_cert_path);
+                }
+            }
+            iso15118_ev_certificate_requested = true;
+        }
+
+        // In a real system, should extract this data from the certificate and check with real authority
+        // TODO Extract ocsp from the EV certificate (when is done in the cpo side)
+
+        if (!iso15118_ev_certificate_status)
+        {
+            // Get the status of a certificate
+            OcspRequestDataType ocsp_request;
+            ocsp_request.hashAlgorithm = HashAlgorithmEnumType::SHA384;
+            ocsp_request.issuerKeyHash.assign("AABBCCDDEEFF");
+            ocsp_request.issuerNameHash.assign("0102030405");
+            ocsp_request.responderURL.assign("https://open-ocpp.org");
+            ocsp_request.serialNumber.assign("S/N12345678");
+            std::string ocsp_result;
+            charge_point.iso15118GetCertificateStatus(ocsp_request, ocsp_result);
+
+            iso15118_ev_certificate_status = true;
+        }
+
         // Update connector statuses
         for (auto& connector : connectors)
         {
@@ -209,9 +261,10 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                 {
                     case ChargePointStatus::Available:
                     {
-                        // Clear any id tag
+                        // Clear any id tag or any id token
                         connector.id_tag        = "";
                         connector.parent_id_tag = "";
+                        connector.id_token = "";
                         mqtt.resetIdTagPending(connector.id);
                     }
                     break;
@@ -277,18 +330,58 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
 
                 case ChargePointStatus::Preparing:
                 {
-                    // Check valid id tag
-                    if (connector.id_tag.empty())
+                    // Check valid id tag or valid certificate
+                    if (connector.id_tag.empty() && connector.id_token.empty())
                     {
                         if (isValidIdTagPresent(mqtt, charge_point, event_handler, connector, false))
                         {
                             // Reset timeout
                             connector.preparing_start = std::chrono::steady_clock::now();
                         }
+                        else if (m_config.ocppConfig().iso15118PnCEnabled())
+                        {
+                            Certificate ev_certificate(ev_cert_path);
+                            if (isValidCertificatePresent(mqtt, charge_point, connector, ev_certificate))
+                            {
+                                // Reset timeout
+                                connector.preparing_start = std::chrono::steady_clock::now();
+                            }
+                        }
+                    }
+
+                    // Try Iso 15118 plug & charge
+                    if ((connector.car_cable_capacity != 0.f) && connector.id_tag.empty() && m_config.ocppConfig().iso15118PnCEnabled() &&
+                        !connector.id_token.empty())
+                    {
+
+                        // Try to start charging session
+                        AuthorizationStatus auth_status = charge_point.startTransaction(connector.id, connector.id_token);
+                        if (auth_status == AuthorizationStatus::Accepted)
+                        {
+                            // If setpoint = 0 => SuspendedEVSE
+                            if (connector.setpoint == 0.f)
+                            {
+                                charge_point.statusNotification(connector.id, ChargePointStatus::SuspendedEVSE);
+                            }
+                            // If car not charging => SuspendedEV
+                            else if (!connector.car_ready)
+                            {
+                                charge_point.statusNotification(connector.id, ChargePointStatus::SuspendedEV);
+                            }
+                            // Else => Charging
+                            else
+                            {
+                                charge_point.statusNotification(connector.id, ChargePointStatus::Charging);
+                            }
+                        }
+                        else
+                        {
+                            connector.id_token = "";
+                        }
                     }
 
                     // Try to start charge if plugged and valid id tag
-                    if ((connector.car_cable_capacity != 0.f) && !connector.id_tag.empty())
+                    else if ((connector.car_cable_capacity != 0.f) && !connector.id_tag.empty())
                     {
                         AuthorizationStatus auth_status = charge_point.startTransaction(connector.id, connector.id_tag);
                         if ((auth_status == AuthorizationStatus::Accepted) || (auth_status == AuthorizationStatus::ConcurrentTx))
@@ -315,8 +408,8 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                             connector.parent_id_tag = "";
                         }
                     }
-                    // If no more car nor valid id tag => Available
-                    else if ((connector.car_cable_capacity == 0.f) && connector.id_tag.empty())
+                    // If no more car nor valid id tag  nor valid id token => Available
+                    else if ((connector.car_cable_capacity == 0.f) && connector.id_tag.empty() && connector.id_token.empty())
                     {
                         charge_point.statusNotification(connector.id, ChargePointStatus::Available);
                     }
@@ -540,6 +633,46 @@ bool SimulatedChargePoint::isValidIdTagPresent(MqttManager&                     
     {
         connector.id_tag        = "";
         connector.parent_id_tag = "";
+    }
+
+    return ret;
+}
+
+/** @brief Check if a valid certificate has been presented */
+bool SimulatedChargePoint::isValidCertificatePresent(MqttManager&                     mqtt,
+                                                     ocpp::chargepoint::IChargePoint& charge_point,
+                                                     ConnectorData&                   connector,
+                                                     const ocpp::x509::Certificate&   certificate)
+{
+    bool ret = false;
+
+    if (mqtt.isIdTokenPending(connector.id))
+    {
+        connector.id_token = mqtt.pendingIdToken(connector.id);
+
+        // In a real system, should extract this data from the certificate and check with real authority
+        // Ask for authorization on a token and a certificate
+        std::vector<OcspRequestDataType>             cert_hash_data;
+        Optional<AuthorizeCertificateStatusEnumType> cert_status;
+        OcspRequestDataType                          ocsp_request;
+        ocsp_request.hashAlgorithm = HashAlgorithmEnumType::SHA384;
+        ocsp_request.issuerKeyHash.assign("AABBCCDDEEFF");
+        ocsp_request.issuerNameHash.assign("0102030405");
+        ocsp_request.responderURL.assign("https://open-ocpp.org");
+        ocsp_request.serialNumber.assign("S/N12345678");
+        cert_hash_data.emplace_back(ocsp_request);
+
+        AuthorizationStatus auth_status = charge_point.iso15118Authorize(certificate, connector.id_token, cert_hash_data, cert_status);
+        if ((auth_status == AuthorizationStatus::Accepted) || (auth_status == AuthorizationStatus::ConcurrentTx))
+        {
+            ret = true;
+        }
+        mqtt.resetIdTokenPending(connector.id);
+    }
+
+    if(!ret)
+    {
+        connector.id_token = "";
     }
 
     return ret;

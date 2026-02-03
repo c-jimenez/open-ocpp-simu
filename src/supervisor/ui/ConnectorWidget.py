@@ -39,7 +39,9 @@ class ConnectorWidget(BoxLayout):
     car_cable = NumericProperty(None)
     car_ready = BooleanProperty(None)
     id_tag = StringProperty(None)
+    id_token = StringProperty(None)
     type = StringProperty(None)
+    iso15118_pnc_enabled = BooleanProperty(None)
 
     def set_properties(self, car_consumption_l1: float, car_consumption_l2: float, car_consumption_l3: float, car_cable: float, car_ready: bool, id_tag: str) -> None:
         """ Set the properties values """
@@ -49,3 +51,5 @@ class ConnectorWidget(BoxLayout):
         self.sl_car_cable.value = car_cable
         self.tb_car_ready.active = not car_ready
         self.ti_id_tag.text = id_tag
+        
+
