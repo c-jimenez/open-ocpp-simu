@@ -42,6 +42,8 @@ class Connector(object):
         self.status = ""
         # Id tag in use
         self.id_tag = ""
+        # Id token in use
+        self.id_token = ""
         # Max setpoint
         self.max_setpoint = 0
         # OCPP setpoint
@@ -74,6 +76,8 @@ class ChargePoint(object):
         self.id = id
         # Type
         self.type = ""
+        # iso15118 Pnc state
+        self.iso15118_pnc_enabled = False
         # Status
         self.status = ""
         # Vendor
@@ -180,6 +184,25 @@ class ChargePointManager(object):
 
             # Build message
             payload = {"id": id_tag}
+
+            # Publish message
+            ret = self.__client.publish(topic_name, json.dumps(payload))
+
+        return ret
+    
+    def send_connector_id_token(self, cp_id: str, con_id: int, id_token: str) -> bool:
+        """ Send new id token for a Charge Point's connector """
+
+        ret = False
+
+        if self.__client.is_connected():
+
+            # Build topic name
+            topic_name = "cp_simu/cps/"+cp_id + \
+                "/connectors/"+str(con_id)+"/id_token"
+
+            # Build message
+            payload = {"id": id_token}
 
             # Publish message
             ret = self.__client.publish(topic_name, json.dumps(payload))
@@ -351,6 +374,7 @@ class ChargePointManager(object):
                     data = json.loads(payload)
                     cp.status = data["status"]
                     cp.type = data["type"]
+                    cp.iso15118_pnc_enabled = data["iso15118_pnc_enabled"]
                     cp.vendor = data["vendor"]
                     cp.model = data["model"]
                     cp.serial = data["serial"]
@@ -404,6 +428,7 @@ class ChargePointManager(object):
         cp_dict = {}
         cp_dict["id"] = cp.id
         cp_dict["type"] = cp.type
+        cp_dict["iso15118_pnc_enabled"] = cp.iso15118_pnc_enabled
         cp_dict["vendor"] = cp.vendor
         cp_dict["model"] = cp.model
         cp_dict["serial"] = cp.serial

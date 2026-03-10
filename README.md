@@ -247,10 +247,10 @@ Payload :
 {
     "type": "start",
     "charge_points": [
-        { "id": "simu_cp_XXX", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 16 },
-        { "id": "simu_cp_YYY", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 32 },
-        { "id": "simu_cp_XXX", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 1, "voltage": 400.0, "max_setpoint": 300000, "max_setpoint_per_connector": 300000 },
-        { "id": "simu_cp_YYY", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 500000, "max_setpoint_per_connector": 250000 },
+        { "id": "simu_cp_XXX", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 16, "iso15118_pnc_enabled":false },
+        { "id": "simu_cp_YYY", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 32, "iso15118_pnc_enabled":false },
+        { "id": "simu_cp_XXX", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 1, "voltage": 400.0, "max_setpoint": 300000, "max_setpoint_per_connector": 300000, "iso15118_pnc_enabled":false },
+        { "id": "simu_cp_YYY", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 500000, "max_setpoint_per_connector": 250000, "iso15118_pnc_enabled":true },
 
     ]
 }
@@ -282,10 +282,10 @@ Payload :
 {
     "type": "restart",
     "charge_points": [
-        { "id": "simu_cp_XXX", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 16 },
-        { "id": "simu_cp_YYY", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 32 },
-        { "id": "simu_cp_XXX", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 1, "voltage": 400.0, "max_setpoint": 300000, "max_setpoint_per_connector": 300000 },
-        { "id": "simu_cp_YYY", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 500000, "max_setpoint_per_connector": 250000 },
+        { "id": "simu_cp_XXX", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 3, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 16, "iso15118_pnc_enabled":false },
+        { "id": "simu_cp_YYY", "type": "AC", "vendor": "Open OCPP AC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 32, "max_setpoint_per_connector": 32 , "iso15118_pnc_enabled":true },
+        { "id": "simu_cp_XXX", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD1234", "central_system": "ws://localhost:8080", "nb_connectors": 1, "nb_phases": 1, "voltage": 400.0, "max_setpoint": 300000, "max_setpoint_per_connector": 300000, "iso15118_pnc_enabled":true },
+        { "id": "simu_cp_YYY", "type": "DC", "vendor": "Open OCPP DC", "model": "Simulated CP", "serial": "S/NABCD5678", "central_system": "ws://localhost:8080", "nb_connectors": 2, "nb_phases": 1, "voltage": 230.0, "max_setpoint": 500000, "max_setpoint_per_connector": 250000, "iso15118_pnc_enabled":true },
     ]
 }
 ```
@@ -307,7 +307,8 @@ The status message has the following payload :
     "max_setpoint":32.0,
     "central_system":"wss://127.0.0.1:9980/",
     "type":"AC",
-    "voltage":230.0"
+    "voltage":230.0",
+    "iso15118_pnc_enabled":false
 }
 ```
 
@@ -357,6 +358,17 @@ The expected command payload is :
  }
  ```
 
+For ISO15118 plug & charge, Each connector of the simulated Charge Point listens to the following topic to simulate Plug & Charge authentication : **cp_simu/cps/simu_cp_XXX/connectors/N/id_token** where **N** stands for the connector number.
+
+The expected command payload is :
+
+ ```
+ {
+    "id": "ID_TOKEN"
+ }
+ ```
+
+
 Each connector of the simulated Charge Point are listening to the following topic to force the Charge Point in faulted status : **cp_simu/cps/simu_cp_XXX/connectors/N/faulted** where **N** stands for the connector number.
 
 The expected command payload is :
@@ -366,7 +378,6 @@ The expected command payload is :
     "faulted": false
  }
  ```
-
 
 Each simulated Charge Point are listening to the following topic to execute a certain command: **cp_simu/cps/simu_cp_XXX/cmd**.
 

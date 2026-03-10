@@ -24,8 +24,10 @@
 
 
 from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import  BooleanProperty
 
 
 # Charge Point status
 class ChargePointWidget(BoxLayout):
+    iso15118_pnc_enabled = BooleanProperty(None)
     pass

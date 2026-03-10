@@ -93,6 +93,7 @@ class SupervisorScreen(BoxLayout):
             if not content.cancel:
                 # Send command
                 cp = ChargePoint(content.cp_id)
+                cp.iso15118_pnc_enabled = content.iso15118_pnc_enabled
                 cp.type = content.type
                 cp.vendor = content.vendor
                 cp.model = content.model
@@ -118,7 +119,7 @@ class SupervisorScreen(BoxLayout):
         content = NewChargePointWidget()
         popup = Popup(title='New simulated charge point',
                       content=content,
-                      size_hint=(None, None), size=(510, 560),
+                      size_hint=(None, None), size=(510, 600),
                       auto_dismiss=False)
         content.popup = popup
         popup.bind(on_dismiss=popup_callback)
@@ -302,6 +303,7 @@ class SupervisorScreen(BoxLayout):
                 cp_widget = ChargePointWidget()
                 cp_widget.cp_id = cp_id
                 cp_widget.type =  cp.type
+                cp_widget.iso15118_pnc_enabled = cp.iso15118_pnc_enabled
                 cp_widget.status = cp.status
                 cp_widget.vendor = cp.vendor
                 cp_widget.model = cp.model
@@ -320,6 +322,7 @@ class SupervisorScreen(BoxLayout):
                     widget.con_id = connector.id
                     widget.status = connector.status
                     widget.type = cp.type
+                    widget.iso15118_pnc_enabled = cp.iso15118_pnc_enabled
                     widget.max_setpoint = self.__cp_mgr.display_value(widget.type, connector.max_setpoint)
                     widget.consumption_l1 = connector.consumption_l1
                     widget.consumption_l2 = connector.consumption_l2
@@ -340,6 +343,10 @@ class SupervisorScreen(BoxLayout):
                         car_ready=self.on_connector_value_changed)
                     widget.bt_id_tag.bind(
                         on_release=self.on_connector_id_tag_passed)
+                    
+                    if cp.iso15118_pnc_enabled:
+                        widget.bind(
+                        car_cable=self.on_car_cable_changed)
 
                     # Add connector widget
                     self.stk_connectors.add_widget(widget)
@@ -348,6 +355,13 @@ class SupervisorScreen(BoxLayout):
         """ Called when a value in the connector has changed """
         self.__cp_mgr.send_connector_values(
             self.__selected_cp_id, connector.con_id, connector.car_consumption_l1, connector.car_consumption_l2, connector.car_consumption_l3, connector.car_cable, connector.car_ready)
+
+    def on_car_cable_changed(self, connector, value):
+        """ Called when a car cable of the connector has changed """
+        emaid = connector.id_token.strip()
+        if emaid == "":
+            emaid = "AABBCCDDEEFF"
+        self.__cp_mgr.send_connector_id_token(self.__selected_cp_id, connector.con_id, emaid)
 
     def on_connector_id_tag_passed(self, connector, *args):
         """ Called when an id tag has been passed on a connector """

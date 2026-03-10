@@ -95,6 +95,12 @@ class SimulatedChargePoint
 
     /** @brief Compute the consumption (current or power) for a connector */
     void computeConsumption(ConnectorData& connector);
+
+    /** @brief Check if a valid certificate has been presented */
+    bool isValidCertificatePresent(MqttManager&                     mqtt,
+                                   ocpp::chargepoint::IChargePoint& charge_point,
+                                   ConnectorData&                   connector,
+                                   const ocpp::x509::Certificate&   certificate);
 };
 
 #endif // SIMULATEDCHARGEPOINT_H

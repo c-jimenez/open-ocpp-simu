@@ -100,6 +100,14 @@ static const map<string, int> CONFIGURATION_VALUES = {
     {"CpoName", PARAM_READ | PARAM_WRITE | PARAM_OCPP},
     {"SecurityProfile", PARAM_READ_WRITE | PARAM_OCPP},
     {"SupportedFileTransferProtocols", PARAM_READ | PARAM_OCPP},
+    //
+    // ISO 15118 PnC extensions
+    //
+    {"CentralContractValidationAllowed", PARAM_READ_WRITE | PARAM_OCPP},
+    {"CertSigningWaitMinimum", PARAM_READ_WRITE | PARAM_OCPP},
+    {"CertSigningRepeatTimes", PARAM_READ_WRITE | PARAM_OCPP},
+    {"ContractValidationOffline", PARAM_READ_WRITE | PARAM_OCPP},
+    {"Iso15118PnCEnabled", PARAM_READ_WRITE | PARAM_OCPP},
 
     ///
     /// Charge point configuration

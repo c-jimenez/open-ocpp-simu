@@ -177,6 +177,17 @@ void MqttManager::mqttMessageReceived(const char* topic, const std::string& mess
                         }
                     }
                 }
+                else if (topic_path.filename().compare("id_token") == 0)
+                {
+                    if (payload.HasMember("id"))
+                    {
+                        rapidjson::Value& id = payload["id"];
+                        if (id.IsString())
+                        {
+                            connector_data.id_token = id.GetString();
+                        }
+                    }
+                }
                 else if (topic_path.filename().compare("faulted") == 0)
                 {
                     if (payload.HasMember("faulted"))
@@ -207,6 +218,7 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
     std::string chargepoint_cmd_topic      = chargepoint_topic + "cmd";
     std::string chargepoint_car_topics     = chargepoint_topic + "connectors/+/car";
     std::string chargepoint_tag_topics     = chargepoint_topic + "connectors/+/id_tag";
+    std::string chargepoint_token_topics     = chargepoint_topic + "connectors/+/id_token";
     std::string chargepoint_faulted_topics = chargepoint_topic + "connectors/+/faulted";
     m_status_topic                         = chargepoint_topic + "status";
     m_ocpp_config_topic                    = chargepoint_topic + "ocpp_config";
@@ -236,9 +248,9 @@ void MqttManager::start(unsigned int nb_phases, unsigned int max_charge_point_cu
             if (m_mqtt->subscribe(chargepoint_cmd_topic))
             {
                 std::cout << "Subscribing to charge point's connector topics: " << chargepoint_car_topics << " and "
-                          << chargepoint_tag_topics << " and " << chargepoint_faulted_topics << std::endl;
+                          << chargepoint_tag_topics << " and " << chargepoint_faulted_topics << " and " << chargepoint_token_topics << std::endl;
                 if (m_mqtt->subscribe(chargepoint_car_topics) && m_mqtt->subscribe(chargepoint_tag_topics) &&
-                    m_mqtt->subscribe(chargepoint_faulted_topics))
+                    m_mqtt->subscribe(chargepoint_faulted_topics) && m_mqtt->subscribe(chargepoint_token_topics))
                 {
                     // Wait for disconnection or end of application
                     std::cout << "Ready!" << std::endl;
@@ -308,6 +320,27 @@ const std::string& MqttManager::pendingIdTag(unsigned int connector_id) const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_connectors[connector_id - 1u].id_tag;
+}
+
+/** @brief Indicate a pending Id token */
+bool MqttManager::isIdTokenPending(unsigned int connector_id) const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return !m_connectors[connector_id - 1u].id_token.empty();
+}
+
+/** @brief Reset the pending Id token */
+void MqttManager::resetIdTokenPending(unsigned int connector_id)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_connectors[connector_id - 1u].id_token = "";
+}
+
+/** @brief Pending Id token */
+const std::string& MqttManager::pendingIdToken(unsigned int connector_id) const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_connectors[connector_id - 1u].id_token;
 }
 
 /** @brief Update the data of a connector */
@@ -466,6 +499,7 @@ std::string MqttManager::buildStatusMessage(const char* status, unsigned int nb_
                   msg.GetAllocator());
     msg.AddMember(rapidjson::StringRef("type"), rapidjson::Value(chargepoint_type, msg.GetAllocator()).Move(), msg.GetAllocator());
     msg.AddMember(rapidjson::StringRef("voltage"), rapidjson::Value(m_config.stackConfig().operatingVoltage()), msg.GetAllocator());
+    msg.AddMember(rapidjson::StringRef("iso15118_pnc_enabled"), rapidjson::Value(m_config.ocppConfig().iso15118PnCEnabled()), msg.GetAllocator());
 
     rapidjson::StringBuffer                    buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

@@ -28,6 +28,7 @@
 
     cp_id: ti_cp_id.text
     type: type_spinner.text
+    iso15118_pnc_enabled: checkbox_pnc.active
     vendor: ti_vendor.text
     model: ti_model.text
     serial: ti_serial.text
@@ -43,7 +44,26 @@
 
     size_hint: None, None
     size: 400, 400
-    
+
+
+    BoxLayout:
+        size_hint_y: None
+        height: dp(50)
+        padding: dp(10)
+        spacing: dp(10)
+        Label:
+            text: "Plug & Charge"
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0     
+        CheckBox:
+            id: checkbox_pnc
+            active: False 
+            on_active:
+                root.iso15118_pnc_enabled = self.active
+
 
     BoxLayout:
         size_hint_y: None

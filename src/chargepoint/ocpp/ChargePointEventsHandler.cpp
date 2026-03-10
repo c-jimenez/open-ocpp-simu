@@ -726,14 +726,15 @@ ocpp::types::DeleteCertificateStatusEnumType ChargePointEventsHandler::deleteCer
         if (!dir_entry.is_directory())
         {
             std::string filename = dir_entry.path().filename().string();
-            if ((ocpp::helpers::startsWith(filename, "fw_") || ocpp::helpers::startsWith(filename, "cs_")) &&
+            if ((ocpp::helpers::startsWith(filename, "fw_") || ocpp::helpers::startsWith(filename, "cs_") ||
+                 ocpp::helpers::startsWith(filename, "iso_")) &&
                 ocpp::helpers::endsWith(filename, ".pem"))
             {
                 Certificate certificate(dir_entry.path());
                 if (certificate.isValid() && certificate.serialNumberHexString() == serial_number)
                 {
                     Sha2 sha(sha_type);
-                    sha.compute(certificate.issuerString().c_str(), certificate.issuerString().size());
+                    sha.compute(certificate.issuerDer().data(), certificate.issuerDer().size());
                     if (issuer_name_hash == sha.resultString())
                     {
                         sha.compute(&certificate.publicKey()[0], certificate.publicKey().size());
