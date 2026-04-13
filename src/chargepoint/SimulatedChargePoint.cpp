@@ -650,6 +650,9 @@ bool SimulatedChargePoint::isValidCertificatePresent(MqttManager&               
     {
         connector.id_token = mqtt.pendingIdToken(connector.id);
 
+        IdTokenType id_token;
+        id_token.idToken.assign(connector.id_token);
+
         // In a real system, should extract this data from the certificate and check with real authority
         // Ask for authorization on a token and a certificate
         std::vector<OcspRequestDataType>             cert_hash_data;
@@ -662,7 +665,7 @@ bool SimulatedChargePoint::isValidCertificatePresent(MqttManager&               
         ocsp_request.serialNumber.assign("S/N12345678");
         cert_hash_data.emplace_back(ocsp_request);
 
-        AuthorizationStatus auth_status = charge_point.iso15118Authorize(certificate, connector.id_token, cert_hash_data, cert_status);
+        AuthorizationStatus auth_status = charge_point.iso15118Authorize(certificate, id_token, cert_hash_data, cert_status);
         if ((auth_status == AuthorizationStatus::Accepted) || (auth_status == AuthorizationStatus::ConcurrentTx))
         {
             ret = true;
