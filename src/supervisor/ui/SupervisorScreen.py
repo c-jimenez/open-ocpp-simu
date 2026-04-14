@@ -120,7 +120,7 @@ class SupervisorScreen(BoxLayout):
         content = NewChargePointWidget()
         popup = Popup(title='New simulated charge point',
                       content=content,
-                      size_hint=(None, None), size=(510, 600),
+                      size_hint=(None, None), size=(510, 660),
                       auto_dismiss=False)
         content.popup = popup
         popup.bind(on_dismiss=popup_callback)

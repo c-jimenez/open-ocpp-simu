@@ -27,8 +27,8 @@ SOFTWARE.
 
 #include "ConnectorData.h"
 
-#include <vector>
 #include <string>
+#include <vector>
 
 class SimulatedChargePointConfig;
 class MqttManager;
@@ -51,7 +51,6 @@ class SimulatedChargePoint
                          unsigned int                 nb_phases,
                          ConnectorData::ConnectorType chargepoint_type,
                          ChargePointData::OCPPVersion chargepoint_ocpp_version);
-
     /** @brief Destructor */
     virtual ~SimulatedChargePoint();
 
@@ -71,9 +70,7 @@ class SimulatedChargePoint
     /** @brief The Charge Point type (AC/DC) */
     ConnectorData::ConnectorType m_charge_point_type;
     /** @brief The Charge Point OCPP stack version (1.6/2.0) */
-     ChargePointData::OCPPVersion m_charge_point_ocpp_version;
-    
-
+    ChargePointData::OCPPVersion m_charge_point_ocpp_version;
 
     /** @brief Control loop */
     void loop(MqttManager&                     mqtt,

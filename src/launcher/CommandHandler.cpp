@@ -198,13 +198,9 @@ bool CommandHandler::startChargePoints(const rapidjson::Value& charge_points, bo
         {
             // Extract charge point parameters
             std::string  id                        = charge_point["id"].GetString();
-<<<<<<< HEAD
             std::string  type                      = charge_point["type"].GetString();       
             bool  iso15118pnc                      = charge_point["iso15118_pnc_enabled"].GetBool();
-=======
             std::string  ocpp_version              = charge_point["ocpp_version"].GetString();
-            std::string  type                      = charge_point["type"].GetString();
->>>>>>> b7fa6a7 (Add OCPP stack version option in UI)
             std::string  vendor                    = charge_point["vendor"].GetString();
             std::string  model                     = charge_point["model"].GetString();
             std::string  serial                    = charge_point["serial"].GetString();

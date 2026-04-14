@@ -25,9 +25,9 @@ SOFTWARE.
 #ifndef SIMULATEDCHARGEPOINTCONFIG_H
 #define SIMULATEDCHARGEPOINTCONFIG_H
 
-#include "ChargePointConfig.h"
 #include "MqttConfig.h"
-#include "OcppConfig.h"
+#include "ocpp16/ChargePointConfig.h"
+#include "ocpp16/OcppConfig.h"
 
 #include <openocpp/IniFile.h>
 #include <set>
@@ -71,7 +71,7 @@ class SimulatedChargePointConfig
     /** @brief Set the value of a MQTT configuration key */
     void setMqttConfigValue(const std::string& key, const std::string& value) { m_mqtt_config.setConfigValue(key, value); }
 
-    float powerFactor() {return  m_stack_config.powerFactor();} 
+    float powerFactor() { return m_stack_config.powerFactor(); }
 
   private:
     /** @brief Working directory */

@@ -23,15 +23,14 @@ SOFTWARE.
 */
 
 #include "ChargePointEventsHandler.h"
-#include "MeterSimulator.h"
 #include "SimulatedChargePointConfig.h"
-
-#include <fstream>
-#include <iostream>
 #include <openocpp/CertificateRequest.h>
 #include <openocpp/PrivateKey.h>
 #include <openocpp/Sha2.h>
 #include <openocpp/StringHelpers.h>
+
+#include <fstream>
+#include <iostream>
 #include <thread>
 
 // With MSVC compiler, the system() call returns directly the command's return value
@@ -40,6 +39,7 @@ SOFTWARE.
 #endif // _MSC_VER
 
 using namespace std;
+using namespace ocpp::types;
 using namespace ocpp::types::ocpp16;
 using namespace ocpp::x509;
 
@@ -67,7 +67,13 @@ ChargePointEventsHandler::ChargePointEventsHandler(SimulatedChargePointConfig& c
 /** @brief Destructor */
 ChargePointEventsHandler::~ChargePointEventsHandler() { }
 
-/** @copydoc void IChargePointEventsHandler::connectionStateChanged(ocpp::types::ocpp16::RegistrationStatus) */
+/** @copydoc void IChargePointEventsHandler::connectionUrlChanged(std::string const&) */
+void ChargePointEventsHandler::connectionUrlChanged(std::string const& url)
+{
+    cout << "Connection url changed to : " << url << endl;
+}
+
+/** @copydoc void IChargePointEventsHandler::connectionFailed(ocpp::types::ocpp16::RegistrationStatus) */
 void ChargePointEventsHandler::connectionFailed(ocpp::types::ocpp16::RegistrationStatus status)
 {
     cout << "Connection failed, previous registration status : " << RegistrationStatusHelper.toString(status) << endl;
@@ -93,8 +99,8 @@ void ChargePointEventsHandler::datetimeReceived(const ocpp::types::DateTime& dat
 }
 
 /** @copydoc AvailabilityStatus IChargePointEventsHandler::changeAvailabilityRequested(unsigned int, ocpp::types::ocpp16::AvailabilityType) */
-ocpp::types::ocpp16::AvailabilityStatus ChargePointEventsHandler::changeAvailabilityRequested(unsigned int                  connector_id,
-                                                                                      ocpp::types::ocpp16::AvailabilityType availability)
+ocpp::types::ocpp16::AvailabilityStatus ChargePointEventsHandler::changeAvailabilityRequested(
+    unsigned int connector_id, ocpp::types::ocpp16::AvailabilityType availability)
 {
     AvailabilityStatus ret = AvailabilityStatus::Accepted;
     cout << "Change availability requested : " << connector_id << " - " << AvailabilityTypeHelper.toString(availability) << endl;
@@ -149,9 +155,9 @@ void ChargePointEventsHandler::reservationEnded(unsigned int connector_id, bool 
                                                                                                   const std::string&,
                                                                                                   std::string&) */
 ocpp::types::ocpp16::DataTransferStatus ChargePointEventsHandler::dataTransferRequested(const std::string& vendor_id,
-                                                                                const std::string& message_id,
-                                                                                const std::string& request_data,
-                                                                                std::string&       response_data)
+                                                                                        const std::string& message_id,
+                                                                                        const std::string& request_data,
+                                                                                        std::string&       response_data)
 {
     (void)response_data;
     cout << "Data transfer received : " << vendor_id << " - " << message_id << " - " << request_data << endl;
@@ -159,9 +165,10 @@ ocpp::types::ocpp16::DataTransferStatus ChargePointEventsHandler::dataTransferRe
 }
 
 /** @copydoc bool getMeterValue(unsigned int, const std::pair<ocpp::types::ocpp16::Measurand, ocpp::types::Optional<ocpp::types::ocpp16::Phase>>&, ocpp::types::ocpp16::MeterValue&) */
-bool ChargePointEventsHandler::getMeterValue(unsigned int connector_id,
-                                             const std::pair<ocpp::types::ocpp16::Measurand, ocpp::types::Optional<ocpp::types::ocpp16::Phase>>& measurand,
-                                             ocpp::types::ocpp16::MeterValue& meter_value)
+bool ChargePointEventsHandler::getMeterValue(
+    unsigned int                                                                                        connector_id,
+    const std::pair<ocpp::types::ocpp16::Measurand, ocpp::types::Optional<ocpp::types::ocpp16::Phase>>& measurand,
+    ocpp::types::ocpp16::MeterValue&                                                                    meter_value)
 {
     bool ret = false;
 
@@ -367,8 +374,8 @@ void ChargePointEventsHandler::transactionDeAuthorized(unsigned int connector_id
 }
 
 /** @copydoc bool IChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int, ocpp::types::ocpp16::ChargingSchedule&) */
-bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int                   connector_id,
-                                                           unsigned int                   duration,
+bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int                           connector_id,
+                                                           unsigned int                           duration,
                                                            ocpp::types::ocpp16::ChargingSchedule& schedule)
 {
     bool ret = false;
@@ -525,7 +532,6 @@ bool ChargePointEventsHandler::uploadFile(const std::string& file, const std::st
 
     return ret;
 }
-
 /** @copydoc bool IChargePointEventsHandler::downloadFile(const std::string&, const std::string&) */
 bool ChargePointEventsHandler::downloadFile(const std::string& url, const std::string& file)
 {
@@ -574,8 +580,8 @@ bool ChargePointEventsHandler::downloadFile(const std::string& url, const std::s
 
 /** @copydoc ocpp::types::ocpp16::CertificateStatusEnumType IChargePointEventsHandler::caCertificateReceived(ocpp::types::ocpp16::CertificateUseEnumType,
                                                                                                      const ocpp::x509::Certificate&) */
-ocpp::types::ocpp16::CertificateStatusEnumType ChargePointEventsHandler::caCertificateReceived(ocpp::types::ocpp16::CertificateUseEnumType type,
-                                                                                       const ocpp::x509::Certificate&      certificate)
+ocpp::types::ocpp16::CertificateStatusEnumType ChargePointEventsHandler::caCertificateReceived(
+    ocpp::types::ocpp16::CertificateUseEnumType type, const ocpp::x509::Certificate& certificate)
 {
     std::string               ca_filename;
     CertificateStatusEnumType ret = CertificateStatusEnumType::Rejected;
@@ -696,10 +702,11 @@ bool ChargePointEventsHandler::chargePointCertificateReceived(const ocpp::x509::
                                                                                                            const std::string&,
                                                                                                            const std::string&,
                                                                                                            const std::string&) */
-ocpp::types::ocpp16::DeleteCertificateStatusEnumType ChargePointEventsHandler::deleteCertificate(ocpp::types::ocpp16::HashAlgorithmEnumType hash_algorithm,
-                                                                                         const std::string& issuer_name_hash,
-                                                                                         const std::string& issuer_key_hash,
-                                                                                         const std::string& serial_number)
+ocpp::types::ocpp16::DeleteCertificateStatusEnumType ChargePointEventsHandler::deleteCertificate(
+    ocpp::types::ocpp16::HashAlgorithmEnumType hash_algorithm,
+    const std::string&                         issuer_name_hash,
+    const std::string&                         issuer_key_hash,
+    const std::string&                         serial_number)
 {
     DeleteCertificateStatusEnumType ret = DeleteCertificateStatusEnumType::NotFound;
 
@@ -785,8 +792,8 @@ void ChargePointEventsHandler::generateCsr(std::string& csr)
 
 /** @copydoc void IChargePointEventsHandler::getInstalledCertificates(ocpp::types::ocpp16::CertificateUseEnumType,
  *                                                                    std::vector<ocpp::x509::Certificate>&) */
-void ChargePointEventsHandler::getInstalledCertificates(ocpp::types::ocpp16::CertificateUseEnumType   type,
-                                                        std::vector<ocpp::x509::Certificate>& certificates)
+void ChargePointEventsHandler::getInstalledCertificates(ocpp::types::ocpp16::CertificateUseEnumType type,
+                                                        std::vector<ocpp::x509::Certificate>&       certificates)
 {
     cout << "Get installed CA certificates requested : type = " << CertificateUseEnumTypeHelper.toString(type) << endl;
 
@@ -816,7 +823,7 @@ void ChargePointEventsHandler::getInstalledCertificates(ocpp::types::ocpp16::Cer
 /** @copydoc std::string IChargePointEventsHandler::getLog(ocpp::types::ocpp16::LogEnumType,
                                                            const ocpp::types::Optional<ocpp::types::DateTime>&,
                                                            const ocpp::types::Optional<ocpp::types::DateTime>&) */
-std::string ChargePointEventsHandler::getLog(ocpp::types::ocpp16::LogEnumType                            type,
+std::string ChargePointEventsHandler::getLog(ocpp::types::ocpp16::LogEnumType                    type,
                                              const ocpp::types::Optional<ocpp::types::DateTime>& start_time,
                                              const ocpp::types::Optional<ocpp::types::DateTime>& stop_time)
 {
@@ -911,9 +918,13 @@ ocpp::types::ocpp16::UpdateFirmwareStatusEnumType ChargePointEventsHandler::chec
     if (!ca_certificates.empty())
     {
         // Check signing certificate
-        if (signing_certificate.verify(ca_certificates))
+        for (const auto& cer : ca_certificates)
         {
-            ret = UpdateFirmwareStatusEnumType::Accepted;
+            if (signing_certificate.verify(cer.certificateChain()))
+            {
+                ret = UpdateFirmwareStatusEnumType::Accepted;
+                break;
+            }
         }
     }
     else
@@ -997,9 +1008,9 @@ bool ChargePointEventsHandler::iso15118ChargePointCertificateReceived(const ocpp
                                                                                                                    const std::string&) */
 ocpp::types::ocpp16::DeleteCertificateStatusEnumType ChargePointEventsHandler::iso15118DeleteCertificate(
     ocpp::types::ocpp16::HashAlgorithmEnumType hash_algorithm,
-    const std::string&                 issuer_name_hash,
-    const std::string&                 issuer_key_hash,
-    const std::string&                 serial_number)
+    const std::string&                         issuer_name_hash,
+    const std::string&                         issuer_key_hash,
+    const std::string&                         serial_number)
 {
     cout << "ISO15118 certificate deletion requested : hash = " << HashAlgorithmEnumTypeHelper.toString(hash_algorithm)
          << " - serial number = " << serial_number << endl;
@@ -1016,7 +1027,9 @@ void ChargePointEventsHandler::iso15118GetInstalledCertificates(
     bool v2g_root_certificate,
     bool mo_root_certificate,
     bool v2g_certificate_chain,
-    std::vector<std::tuple<ocpp::types::ocpp16::GetCertificateIdUseEnumType, ocpp::x509::Certificate, std::vector<ocpp::x509::Certificate>>>&
+    bool oem_root_certificate,
+    std::vector<
+        std::tuple<ocpp::types::ocpp16::GetCertificateIdUseEnumType, ocpp::x509::Certificate, std::vector<ocpp::x509::Certificate>>>&
         certificates)
 {
     cout << "ISO15118 get installed certificates requested : v2g_root_certificate = " << (v2g_root_certificate ? "yes" : "no")
@@ -1028,7 +1041,7 @@ void ChargePointEventsHandler::iso15118GetInstalledCertificates(
     {
         if (!dir_entry.is_directory())
         {
-            std::string filename = (dir_entry.path().filename()).string();
+            std::string filename = dir_entry.path().filename().string();
             if (v2g_root_certificate)
             {
                 if (ocpp::helpers::startsWith(filename, "iso_v2g_root_") && ocpp::helpers::endsWith(filename, ".pem"))
@@ -1061,7 +1074,7 @@ void ChargePointEventsHandler::iso15118GetInstalledCertificates(
             }
             if (oem_root_certificate)
             {
-                if (ocpp::helpers::startsWith(filename, "oem_root_") && ocpp::helpers::endsWith(filename, ".pem"))
+                if (ocpp::helpers::startsWith(filename, "iso_oem_root_") && ocpp::helpers::endsWith(filename, ".pem"))
                 {
                     auto tuple = std::make_tuple(GetCertificateIdUseEnumType::OEMRootCertificate,
                                                  Certificate(dir_entry.path()),

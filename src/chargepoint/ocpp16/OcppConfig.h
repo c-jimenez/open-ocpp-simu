@@ -25,8 +25,8 @@ SOFTWARE.
 #ifndef OCPPCONFIG_H
 #define OCPPCONFIG_H
 
-#include <openocpp/IOcppConfig.h>
-#include <openocpp/IniFile.h>
+#include "IOcppConfig.h"
+#include "IniFile.h"
 
 /** @brief Section name for the parameters */
 static const std::string OCPP_PARAMS = "Ocpp";
@@ -50,7 +50,7 @@ class OcppConfig : public ocpp::config::IOcppConfig
      *                                              std::vector<ocpp::types::CiStringType<50u>>&);
      */
     void getConfiguration(const std::vector<ocpp::types::CiStringType<50u>>& keys,
-                          std::vector<ocpp::types::ocpp16::KeyValue>&                values,
+                          std::vector<ocpp::types::ocpp16::KeyValue>&        values,
                           std::vector<ocpp::types::CiStringType<50u>>&       unknown_values) override;
 
     ///
@@ -270,7 +270,7 @@ class OcppConfig : public ocpp::config::IOcppConfig
     // ISO 15118 PnC extensions
     //
 
-    /** @brief If this variable exists and has the value true, then the Charge Point can provide a contract certificate that it cannot
+    /** @brief If this variable exists and has the value true, then the Charge Point can provide a contract certificate that it cannot 
                validate to the Central System for validation as part of the Authorize.req */
     bool centralContractValidationAllowed() const override { return getBool("CentralContractValidationAllowed"); }
 

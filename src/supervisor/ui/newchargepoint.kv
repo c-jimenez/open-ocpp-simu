@@ -81,7 +81,19 @@
             text: '1.6'
             values: ['1.6', '2.0']
             on_text:
-                root.ocpp_version = ocpp_version_spinner.text               
+                root.ocpp_version = ocpp_version_spinner.text    
+                #TODO: Remove this when adding the OCPP2.0 support
+                ocpp_note.opacity = 1 if self.text == '2.0' else 0
+
+    Label:
+        id: ocpp_note
+        text: 'Note: OCPP 2.0 is not supported yet.'
+        font_size: '12sp'
+        color: 1, 0, 0, 1   
+        opacity: 0         
+        size_hint_y: None
+        height: self.texture_size[1]
+           
 
     BoxLayout:
         size_hint_y: None
