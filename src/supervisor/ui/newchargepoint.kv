@@ -29,6 +29,7 @@
     cp_id: ti_cp_id.text
     type: type_spinner.text
     iso15118_pnc_enabled: checkbox_pnc.active
+    ocpp_version: ocpp_version_spinner.text
     vendor: ti_vendor.text
     model: ti_model.text
     serial: ti_serial.text
@@ -44,8 +45,7 @@
 
     size_hint: None, None
     size: 400, 400
-
-
+    
     BoxLayout:
         size_hint_y: None
         height: dp(50)
@@ -64,6 +64,36 @@
             on_active:
                 root.iso15118_pnc_enabled = self.active
 
+    BoxLayout:
+        size_hint_y: None
+        height: dp(50)
+        padding: dp(10)
+        spacing: dp(10)
+        Label:
+            text: 'OCPP Version'
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            size_hint: None, 1.
+            size: 150, 0
+        Spinner:
+            id: ocpp_version_spinner
+            text: '1.6'
+            values: ['1.6', '2.0']
+            on_text:
+                root.ocpp_version = ocpp_version_spinner.text    
+                #TODO: Remove this when adding the OCPP2.0 support
+                ocpp_note.opacity = 1 if self.text == '2.0' else 0
+
+    Label:
+        id: ocpp_note
+        text: 'Note: OCPP 2.0 is not supported yet.'
+        font_size: '12sp'
+        color: 1, 0, 0, 1   
+        opacity: 0         
+        size_hint_y: None
+        height: self.texture_size[1]
+           
 
     BoxLayout:
         size_hint_y: None

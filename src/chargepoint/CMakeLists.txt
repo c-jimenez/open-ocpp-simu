@@ -9,10 +9,10 @@ include_directories(. ../common)
 add_executable(chargepoint
     main.cpp
     MeterSimulator.cpp
-    SimulatedChargePoint.cpp
+    SimulatedChargePointOcpp16.cpp
     mqtt/MqttManager.cpp
-    ocpp/ChargePointEventsHandler.cpp
-    ocpp/OcppConfig.cpp
+    ocpp16/ChargePointEventsHandler.cpp
+    ocpp16/OcppConfig.cpp
 )
 include_directories(config mqtt ocpp)
 

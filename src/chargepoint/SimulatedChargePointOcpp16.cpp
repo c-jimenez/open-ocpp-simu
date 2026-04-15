@@ -22,21 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "SimulatedChargePoint.h"
-#include "ChargePointEventsHandler.h"
+#include "SimulatedChargePointOcpp16.h"
 #include "MeterSimulator.h"
 #include "MqttManager.h"
 #include "SimulatedChargePointConfig.h"
 #include "Version.h"
+#include "ocpp16/ChargePointEventsHandler.h"
 
 #include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <thread>
 #include <vector>
-#include <filesystem>
 
 #include <openocpp/TimerPool.h>
 
+using namespace ocpp::types::ocpp16;
 using namespace ocpp::types;
 using namespace ocpp::x509;
 
@@ -45,12 +46,14 @@ SimulatedChargePoint::SimulatedChargePoint(SimulatedChargePointConfig&  config,
                                            unsigned int                 max_charge_point_setpoint,
                                            unsigned int                 max_connector_setpoint,
                                            unsigned int                 nb_phases,
-                                           ConnectorData::ConnectorType chargepoint_type)
+                                           ConnectorData::ConnectorType chargepoint_type,
+                                           ChargePointData::OCPPVersion chargepoint_ocpp_version)
     : m_config(config),
       m_max_charge_point_setpoint(static_cast<float>(max_charge_point_setpoint)),
       m_max_connector_setpoint(static_cast<float>(max_connector_setpoint)),
       m_nb_phases(nb_phases),
-      m_charge_point_type(chargepoint_type)
+      m_charge_point_type(chargepoint_type),
+      m_charge_point_ocpp_version(chargepoint_ocpp_version)
 {
     if (m_charge_point_type == ConnectorData::ConnectorType::DC)
     {
@@ -70,8 +73,11 @@ void SimulatedChargePoint::start()
     // MQTT connectivity
     std::cout << "Starting MQTT connectivity..." << std::endl;
     MqttManager mqtt(m_config);
-    std::thread mqtt_thread([&mqtt, this]
-                            { mqtt.start(m_nb_phases, static_cast<unsigned int>(m_max_charge_point_setpoint), m_charge_point_type); });
+    std::thread mqtt_thread(
+        [&mqtt, this] {
+            mqtt.start(
+                m_nb_phases, static_cast<unsigned int>(m_max_charge_point_setpoint), m_charge_point_type, m_charge_point_ocpp_version);
+        });
 
     // Allocated data for each connector
     ocpp::helpers::TimerPool     meters_timer_pool;
@@ -135,12 +141,13 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                                 ChargePointEventsHandler&        event_handler,
                                 std::vector<ConnectorData>&      connectors)
 {
-    bool               status_published = false;
-    bool               ocpp_connected   = false;
-    RegistrationStatus ocpp_status      = RegistrationStatus::Rejected;
-    std::string        status_str       = "Disconnected";
-    bool iso15118_ev_certificate_requested = false;
-    bool iso15118_ev_certificate_status = false;
+    bool               status_published                  = false;
+    bool               ocpp_connected                    = false;
+    RegistrationStatus ocpp_status                       = RegistrationStatus::Rejected;
+    std::string        status_str                        = "Disconnected";
+    bool               iso15118_ev_certificate_requested = false;
+    bool               iso15118_ev_certificate_status    = false;
+
     std::filesystem::path ev_cert_path(m_config.stackConfig().EvCertPath());
 
     // Look for installed charge point certificates and remove it
@@ -184,7 +191,8 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
             }
             if (!status_published)
             {
-                status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type);
+                status_published = mqtt.publishStatus(
+                    status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type, m_charge_point_ocpp_version);
             }
 
             // Publish connectors status
@@ -213,7 +221,8 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
         }
         if (!status_published)
         {
-            status_published = mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type);
+            status_published =
+                mqtt.publishStatus(status_str, m_nb_phases, m_max_charge_point_setpoint, m_charge_point_type, m_charge_point_ocpp_version);
         }
 
         if (m_config.ocppConfig().iso15118PnCEnabled() && !iso15118_ev_certificate_requested)
@@ -233,7 +242,6 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
 
         // In a real system, should extract this data from the certificate and check with real authority
         // TODO Extract ocsp from the EV certificate (when is done in the cpo side)
-
         if (!iso15118_ev_certificate_status)
         {
             // Get the status of a certificate
@@ -264,7 +272,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                         // Clear any id tag or any id token
                         connector.id_tag        = "";
                         connector.parent_id_tag = "";
-                        connector.id_token = "";
+                        connector.id_token      = "";
                         mqtt.resetIdTagPending(connector.id);
                     }
                     break;
@@ -349,13 +357,13 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                         }
                     }
 
+                    int transaction_id = 0;
                     // Try Iso 15118 plug & charge
                     if ((connector.car_cable_capacity != 0.f) && connector.id_tag.empty() && m_config.ocppConfig().iso15118PnCEnabled() &&
                         !connector.id_token.empty())
                     {
-
                         // Try to start charging session
-                        AuthorizationStatus auth_status = charge_point.startTransaction(connector.id, connector.id_token);
+                        AuthorizationStatus auth_status = charge_point.startTransaction(connector.id, connector.id_token, transaction_id);
                         if (auth_status == AuthorizationStatus::Accepted)
                         {
                             // If setpoint = 0 => SuspendedEVSE
@@ -383,7 +391,7 @@ void SimulatedChargePoint::loop(MqttManager&                     mqtt,
                     // Try to start charge if plugged and valid id tag
                     else if ((connector.car_cable_capacity != 0.f) && !connector.id_tag.empty())
                     {
-                        AuthorizationStatus auth_status = charge_point.startTransaction(connector.id, connector.id_tag);
+                        AuthorizationStatus auth_status = charge_point.startTransaction(connector.id, connector.id_tag, transaction_id);
                         if ((auth_status == AuthorizationStatus::Accepted) || (auth_status == AuthorizationStatus::ConcurrentTx))
                         {
                             // If setpoint = 0 => SuspendedEVSE
@@ -673,7 +681,7 @@ bool SimulatedChargePoint::isValidCertificatePresent(MqttManager&               
         mqtt.resetIdTokenPending(connector.id);
     }
 
-    if(!ret)
+    if (!ret)
     {
         connector.id_token = "";
     }
@@ -732,9 +740,9 @@ bool SimulatedChargePoint::isTransactionStopCondition(MqttManager&              
 /** @brief Compute the setpoint for each connector */
 void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& charge_point, std::vector<ConnectorData>& connectors)
 {
-    Optional<SmartChargingSetpoint>   charge_point_setpoint;
-    Optional<SmartChargingSetpoint>   connector_setpoint;
-    ocpp::types::ChargingRateUnitType charge_point_rate_unit_type;
+    ocpp::types::Optional<SmartChargingSetpoint> charge_point_setpoint;
+    ocpp::types::Optional<SmartChargingSetpoint> connector_setpoint;
+    ChargingRateUnitType                         charge_point_rate_unit_type;
 
     // Default setpoint is max current
     float whole_charge_point_setpoint = m_max_charge_point_setpoint;
@@ -747,11 +755,11 @@ void SimulatedChargePoint::computeSetpoints(ocpp::chargepoint::IChargePoint& cha
 
         if (connector.meter->getCurrentOutType() == ConnectorData::ConnectorType::AC)
         {
-            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::A;
+            charge_point_rate_unit_type = ChargingRateUnitType::A;
         }
         else
         {
-            charge_point_rate_unit_type = ocpp::types::ChargingRateUnitType::W;
+            charge_point_rate_unit_type = ChargingRateUnitType::W;
         }
 
         // Get the smart charging setpoint

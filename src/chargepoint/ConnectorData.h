@@ -29,10 +29,16 @@ SOFTWARE.
 #include <openocpp/IChargePoint.h>
 #include <openocpp/EnumToStringFromString.h>
 
-using namespace ocpp::types;
-
 class MeterSimulator;
 
+/** @brief Data associated to a charge point */
+struct ChargePointData
+{
+    /** @brief Charge point OCPP stack version (OCPP16/OCPP20) */
+    enum class OCPPVersion { OCPP16, OCPP20 };
+
+    static inline const ocpp::types::EnumToStringFromString<OCPPVersion> OCPPVersionHelper{{{OCPPVersion::OCPP16, "1.6"}, {OCPPVersion::OCPP20, "2.0"}}};
+};
 
 /** @brief Data associated to a connector */
 struct ConnectorData
@@ -40,7 +46,7 @@ struct ConnectorData
     /** @brief Connector type (AC/DC) */
     enum class ConnectorType { AC, DC };
 
-    static inline const EnumToStringFromString<ConnectorType> ConnectorTypeHelper{{{ConnectorType::AC, "AC"}, {ConnectorType::DC, "DC"}}};
+    static inline const ocpp::types::EnumToStringFromString<ConnectorType> ConnectorTypeHelper{{{ConnectorType::AC, "AC"}, {ConnectorType::DC, "DC"}}};
 
     /** @brief Default constructor */
     ConnectorData()
@@ -66,7 +72,7 @@ struct ConnectorData
     /** @brief Id */
     unsigned int id;
     /** @brief Status */
-    ocpp::types::ChargePointStatus status;
+    ocpp::types::ocpp16::ChargePointStatus status;
     /** @brief Id tag in use */
     std::string id_tag;
     /** @brief Id token in use */

@@ -116,7 +116,7 @@ class ChargePointConfig : public ocpp::config::IChargePointConfig
     float operatingVoltage() const override { return static_cast<float>(getFloat("OperatingVoltage")); }
 
     // /** @brief power factor of total energy flow */
-    float powerFactor()  { return static_cast<float>(getFloat("PowerFactor")); }
+    float powerFactor() { return static_cast<float>(getFloat("PowerFactor")); }
 
     // Authent
 

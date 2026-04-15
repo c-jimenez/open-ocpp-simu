@@ -30,6 +30,7 @@ SOFTWARE.
 
 using namespace std;
 using namespace ocpp::types;
+using namespace ocpp::types::ocpp16;
 using namespace ocpp::helpers;
 
 /** @brief Read attribute */
@@ -46,9 +47,9 @@ using namespace ocpp::helpers;
 /** @brief List of configuration values with their attributes */
 static const map<string, int> CONFIGURATION_VALUES = {
 
-    ///
-    /// Stand OCPP configuration
-    ///
+    //
+    // Standart OCPP configuration
+    //
     {"AllowOfflineTxForUnknownId", PARAM_READ_WRITE | PARAM_OCPP},
     {"AuthorizationCacheEnabled", PARAM_READ_WRITE | PARAM_OCPP},
     {"AuthorizeRemoteTxRequests", PARAM_READ_WRITE | PARAM_OCPP},
@@ -93,6 +94,9 @@ static const map<string, int> CONFIGURATION_VALUES = {
     {"ConnectorSwitch3to1PhaseSupported", PARAM_READ | PARAM_OCPP},
     {"MaxChargingProfilesInstalled", PARAM_READ | PARAM_OCPP},
     {"MaxChargingProfilesInstalled", PARAM_READ | PARAM_OCPP},
+    //
+    // Security extensions
+    //
     {"AdditionalRootCertificateCheck", PARAM_READ | PARAM_OCPP},
     {"AuthorizationKey", PARAM_WRITE | PARAM_OCPP},
     {"CertificateSignedMaxChainSize", PARAM_READ | PARAM_OCPP},
@@ -109,9 +113,9 @@ static const map<string, int> CONFIGURATION_VALUES = {
     {"ContractValidationOffline", PARAM_READ_WRITE | PARAM_OCPP},
     {"Iso15118PnCEnabled", PARAM_READ_WRITE | PARAM_OCPP},
 
-    ///
-    /// Charge point configuration
-    ///
+    //
+    // Charge point configuration
+    //
     {"ConnexionUrl", PARAM_READ_WRITE | PARAM_REBOOT},
     {"ChargePointIdentifier", PARAM_READ_WRITE | PARAM_REBOOT},
     {"FirmwareVersion", PARAM_READ}};
@@ -120,11 +124,11 @@ static const map<string, int> CONFIGURATION_VALUES = {
 OcppConfig::OcppConfig(ocpp::helpers::IniFile& config) : m_config(config) { }
 
 /** @copydoc void IOcppConfig::getConfiguration(const std::vector<ocpp::types::CiStringType<50u>>&,
- *                                              std::vector<ocpp::types::KeyValue>&,
+ *                                              std::vector<ocpp::types::ocpp16::KeyValue>&,
  *                                              std::vector<ocpp::types::CiStringType<50u>>&);
  */
 void OcppConfig::getConfiguration(const std::vector<ocpp::types::CiStringType<50u>>& keys,
-                                  std::vector<ocpp::types::KeyValue>&                values,
+                                  std::vector<ocpp::types::ocpp16::KeyValue>&        values,
                                   std::vector<ocpp::types::CiStringType<50u>>&       unknown_values)
 {
     if (keys.empty())
@@ -186,7 +190,7 @@ void OcppConfig::getConfiguration(const std::vector<ocpp::types::CiStringType<50
 }
 
 /** @copydoc ConfigurationStatus IOcppConfig::setConfiguration(const std::string&, const std::string&) */
-ocpp::types::ConfigurationStatus OcppConfig::setConfiguration(const std::string& key, const std::string& value)
+ocpp::types::ocpp16::ConfigurationStatus OcppConfig::setConfiguration(const std::string& key, const std::string& value)
 {
     ConfigurationStatus ret = ConfigurationStatus::NotSupported;
     const auto          it  = CONFIGURATION_VALUES.find(key);

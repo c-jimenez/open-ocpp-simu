@@ -94,6 +94,7 @@ class SupervisorScreen(BoxLayout):
                 # Send command
                 cp = ChargePoint(content.cp_id)
                 cp.iso15118_pnc_enabled = content.iso15118_pnc_enabled
+                cp.ocpp_version = content.ocpp_version
                 cp.type = content.type
                 cp.vendor = content.vendor
                 cp.model = content.model
@@ -119,7 +120,7 @@ class SupervisorScreen(BoxLayout):
         content = NewChargePointWidget()
         popup = Popup(title='New simulated charge point',
                       content=content,
-                      size_hint=(None, None), size=(510, 600),
+                      size_hint=(None, None), size=(510, 660),
                       auto_dismiss=False)
         content.popup = popup
         popup.bind(on_dismiss=popup_callback)
@@ -302,6 +303,7 @@ class SupervisorScreen(BoxLayout):
                 # Add charge point widget
                 cp_widget = ChargePointWidget()
                 cp_widget.cp_id = cp_id
+                cp_widget.ocpp_version =  cp.ocpp_version
                 cp_widget.type =  cp.type
                 cp_widget.iso15118_pnc_enabled = cp.iso15118_pnc_enabled
                 cp_widget.status = cp.status
