@@ -412,7 +412,13 @@ bool ChargePointEventsHandler::getLocalLimitationsSchedule(unsigned int         
 bool ChargePointEventsHandler::resetRequested(ocpp::types::ResetType reset_type)
 {
     cout << "Reset requested : " << ResetTypeHelper.toString(reset_type) << endl;
-    m_reset_pending = true;
+    std::thread executor = std::thread(
+        [&]
+        {
+            std::this_thread::sleep_for(1s);
+            m_reset_pending = true;
+        });
+    executor.detach();
     return true;
 }
 
